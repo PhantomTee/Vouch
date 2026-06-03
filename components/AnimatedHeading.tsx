@@ -26,7 +26,7 @@ export function AnimatedHeading() {
 
   return (
     <h1
-      className="font-display text-[5rem] leading-none tracking-tight text-ink md:text-[6.5rem] lg:text-[7.5rem]"
+      className="font-display text-[2.6rem] leading-none tracking-tight text-ink sm:text-[3.5rem] md:text-[5rem] lg:text-[6.5rem] xl:text-[7.5rem]"
       style={{
         transition: "opacity 0.35s ease, transform 0.35s ease",
         opacity: visible ? 1 : 0,

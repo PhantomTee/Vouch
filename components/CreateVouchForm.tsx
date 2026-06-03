@@ -127,9 +127,9 @@ export function CreateVouchForm() {
   }
 
   return (
-    <div className="grid gap-8 lg:grid-cols-[1fr_360px]">
-      <section className="card-neo p-6">
-        <div className="grid gap-4 md:grid-cols-2">
+    <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
+      <section className="card-neo min-w-0 p-4 sm:p-6">
+        <div className="grid gap-4 sm:grid-cols-2">
           {([
             ["name", "Project name"],
             ["tagline", "Tagline"],
@@ -162,7 +162,7 @@ export function CreateVouchForm() {
             </select>
           </label>
 
-          <label className="flex flex-col gap-1.5 font-mono text-xs font-bold uppercase tracking-wider text-ink md:col-span-2">
+          <label className="flex flex-col gap-1.5 font-mono text-xs font-bold uppercase tracking-wider text-ink sm:col-span-2">
             Short description
             <textarea
               value={input.description}

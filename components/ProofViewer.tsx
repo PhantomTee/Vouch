@@ -87,18 +87,18 @@ export function ProofViewer({ objectId }: { objectId: string }) {
   const digest = proof?.txDigest || chain?.data?.previousTransaction;
 
   return (
-    <main className="mx-auto max-w-7xl px-6 py-10">
+    <main className="mx-auto max-w-7xl overflow-x-hidden px-4 py-8 sm:px-6 sm:py-10">
       <div className="grid gap-8 lg:grid-cols-[1fr_360px]">
-        <section>
-          <div className="mb-6 flex flex-wrap items-center gap-3">
+        <section className="min-w-0">
+          <div className="mb-5 flex flex-wrap items-center gap-2">
             <VerificationBadge status={chain || proof ? "verified" : "pending"} />
             <span className="font-mono text-xs text-ink/50">{message}</span>
           </div>
 
-          <h1 className="font-display text-5xl text-ink md:text-6xl">{title.toUpperCase()}</h1>
-          <p className="mt-3 font-mono text-base text-ink/70">{proof?.tagline || fieldString(fields, "tagline")}</p>
+          <h1 className="font-display text-3xl text-ink sm:text-4xl md:text-5xl">{title.toUpperCase()}</h1>
+          <p className="mt-3 font-mono text-sm text-ink/70 sm:text-base">{proof?.tagline || fieldString(fields, "tagline")}</p>
 
-          <div className="mt-8 grid gap-4 md:grid-cols-2">
+          <div className="mt-6 grid gap-3 sm:mt-8 sm:gap-4 md:grid-cols-2">
             <Info label="Owner wallet" value={owner} />
             <Info label="Sui object ID" value={objectId} />
             <Info label="Transaction digest" value={digest || "Unavailable"} />
@@ -166,9 +166,9 @@ export function ProofViewer({ objectId }: { objectId: string }) {
 
 function Info({ label, value }: { label: string; value?: string }) {
   return (
-    <div className="card-neo p-4">
+    <div className="card-neo min-w-0 p-3 sm:p-4">
       <p className="font-mono text-xs font-bold uppercase tracking-widest text-ink/50">{label}</p>
-      <p className="mt-2 break-all font-mono text-sm text-ink">{value || "Pending"}</p>
+      <p className="mt-2 break-all font-mono text-xs text-ink sm:text-sm">{value || "Pending"}</p>
     </div>
   );
 }

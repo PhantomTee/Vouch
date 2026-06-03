@@ -5,8 +5,11 @@
 :root { color-scheme: light; }
 * { box-sizing: border-box; }
 
+html { overflow-x: hidden; }
+
 body {
   margin: 0;
+  overflow-x: hidden;
   background: #87CEEB;
   color: #0A0A0A;
   font-family: var(--font-space-mono), "Courier New", monospace;
