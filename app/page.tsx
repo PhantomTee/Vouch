@@ -3,6 +3,7 @@ import { ArrowRight, Database, Fingerprint, ShieldCheck } from "lucide-react";
 import { TatumStatusCard } from "@/components/TatumStatusCard";
 import { WalrusStorageCard } from "@/components/WalrusStorageCard";
 import { CartoonMascot } from "@/components/CartoonMascot";
+import { AnimatedHeading } from "@/components/AnimatedHeading";
 
 const tickerItems = [
   "EVIDENCE ON WALRUS",
@@ -41,12 +42,7 @@ export default function Home() {
       <section className="mx-auto max-w-7xl px-6 py-20 lg:py-28">
         <div className="grid items-center gap-12 lg:grid-cols-2">
           <div className="animate-slide-up">
-            <span className="btn-neo mb-6 inline-block bg-gold px-4 py-2 text-xs text-ink">
-              Tatum × Build on Sui × Walrus Hackathon MVP
-            </span>
-            <h1 className="font-display text-[5rem] leading-none tracking-tight text-ink md:text-[6.5rem] lg:text-[7.5rem]">
-              PROOF YOUR BUILD HAPPENED.
-            </h1>
+            <AnimatedHeading />
             <p className="mt-6 max-w-lg font-mono text-base text-ink/70">
               Vouch stores project evidence on Walrus and anchors proof hashes on Sui through Tatum RPC. Every build, verifiable forever.
             </p>
