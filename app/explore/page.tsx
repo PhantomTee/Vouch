@@ -1,0 +1,2 @@
+import { ProofList } from "@/components/ProofList";
+export default function ExplorePage() { return <main className="mx-auto max-w-7xl px-6 py-10"><h1 className="text-4xl font-black">Explore Proofs</h1><p className="mt-3 max-w-3xl text-slate-400">Recent Vouch proofs appear from the browser cache after creation. The Move contract emits events so a production indexer can query full history through Tatum Sui RPC.</p><div className="mt-8"><ProofList /></div></main>; }
