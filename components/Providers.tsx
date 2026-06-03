@@ -12,13 +12,8 @@ const { networkConfig } = createNetworkConfig({
 });
 
 function createTatumSuiClient(url: string) {
-  const headers = env.tatumApiKey ? { "x-api-key": env.tatumApiKey } : undefined;
-  return new SuiClient({
-    transport: new SuiHTTPTransport({
-      url,
-      rpc: headers ? { headers } : undefined
-    })
-  });
+  // When url is /api/rpc (browser), no extra headers needed — proxy adds the API key server-side
+  return new SuiClient({ transport: new SuiHTTPTransport({ url }) });
 }
 
 export function Providers({ children }: { children: React.ReactNode }) {
