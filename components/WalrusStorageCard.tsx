@@ -1,0 +1,3 @@
+import { Database } from "lucide-react";
+import { env } from "@/lib/env";
+export function WalrusStorageCard() { const ready = Boolean(env.walrusPublisherUrl && env.walrusAggregatorUrl); return <div className="rounded-3xl border border-line bg-panel p-5"><div className="flex items-center gap-2"><Database className={ready ? "text-brand-green" : "text-brand-amber"} /><h3 className="font-bold">Walrus storage</h3></div><p className="mt-3 text-sm text-slate-300">{ready ? "Publisher and aggregator configured" : "Configure Walrus endpoints"}</p><p className="mt-2 text-xs text-slate-500">Uploads fail loudly until real Walrus URLs are set.</p></div>; }

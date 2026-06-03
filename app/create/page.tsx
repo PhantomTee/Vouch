@@ -1,0 +1,2 @@
+import { CreateVouchForm } from "@/components/CreateVouchForm";
+export default function CreatePage() { return <main className="mx-auto max-w-7xl px-6 py-10"><div className="mb-8"><p className="text-sm uppercase tracking-[.25em] text-brand-blue">Create Vouch</p><h1 className="mt-3 text-4xl font-black">Publish verifiable project evidence</h1><p className="mt-3 max-w-2xl text-slate-400">Hash evidence locally, upload it to Walrus, upload a manifest, then anchor the manifest hash and blob ID on Sui.</p></div><CreateVouchForm /></main>; }
