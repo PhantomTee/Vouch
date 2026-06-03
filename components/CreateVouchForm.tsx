@@ -153,9 +153,7 @@ export function CreateVouchForm() {
         manifestHash
       });
 
-      const result = await signAndExecuteTransaction({
-        transaction: tx as Parameters<typeof signAndExecuteTransaction>[0]["transaction"]
-      });
+      const result = await signAndExecuteTransaction({ transaction: tx });
       const objectId = getCreatedObjectId(result as SuiTransactionBlockResponse);
 
       const proof: StoredProof = {
