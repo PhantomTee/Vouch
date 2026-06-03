@@ -2,8 +2,97 @@
 @tailwind components;
 @tailwind utilities;
 
-:root { color-scheme: dark; }
+:root { color-scheme: light; }
 * { box-sizing: border-box; }
-body { margin: 0; background: #080B14; color: #F8FAFC; }
-.gradient-border { background: linear-gradient(#101624,#101624) padding-box, linear-gradient(135deg,#4F8CFF,#8B5CF6) border-box; border: 1px solid transparent; }
-.grid-bg { background-image: radial-gradient(circle at 1px 1px, rgba(255,255,255,.08) 1px, transparent 0); background-size: 32px 32px; }
+
+body {
+  margin: 0;
+  background: #87CEEB;
+  color: #0A0A0A;
+  font-family: var(--font-space-mono), "Courier New", monospace;
+}
+
+/* ── Animations ── */
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-14px); }
+}
+@keyframes peek {
+  0%, 100% { transform: translateY(6px); }
+  50% { transform: translateY(0); }
+}
+@keyframes wobble {
+  0%, 100% { transform: rotate(-3deg); }
+  50% { transform: rotate(3deg); }
+}
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(32px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes bounce-in {
+  0%   { opacity: 0; transform: scale(0.75); }
+  60%  { transform: scale(1.08); }
+  100% { opacity: 1; transform: scale(1); }
+}
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+.animate-float      { animation: float 3s ease-in-out infinite; }
+.animate-peek       { animation: peek 2.5s ease-in-out infinite; }
+.animate-wobble     { animation: wobble 2s ease-in-out infinite; }
+.animate-marquee    { animation: marquee 28s linear infinite; }
+.animate-slide-up   { animation: slide-up 0.6s ease forwards; }
+.animate-bounce-in  { animation: bounce-in 0.5s cubic-bezier(0.34,1.56,0.64,1) forwards; }
+.animate-spin-slow  { animation: spin-slow 8s linear infinite; }
+
+/* ── Neo-brutalist utilities ── */
+.btn-neo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border: 3px solid #0A0A0A;
+  box-shadow: 4px 4px 0 #0A0A0A;
+  border-radius: 9999px;
+  font-family: var(--font-space-mono), monospace;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+  cursor: pointer;
+  text-decoration: none;
+}
+.btn-neo:hover  { transform: translate(2px, 2px); box-shadow: 2px 2px 0 #0A0A0A; }
+.btn-neo:active { transform: translate(4px, 4px); box-shadow: 0 0 0 #0A0A0A; }
+
+.card-neo {
+  border: 3px solid #0A0A0A;
+  box-shadow: 6px 6px 0 #0A0A0A;
+  background: #FFFFFF;
+  border-radius: 1.5rem;
+}
+
+/* ── Marquee ticker ── */
+.ticker-wrap {
+  overflow: hidden;
+  border-top: 3px solid #0A0A0A;
+  border-bottom: 3px solid #0A0A0A;
+  background: #0A0A0A;
+  padding: 0.65rem 0;
+}
+.ticker-track { display: flex; white-space: nowrap; }
+
+/* ── Legacy class overrides (keeps old class names working with new theme) ── */
+.gradient-border {
+  border: 3px solid #0A0A0A;
+  box-shadow: 6px 6px 0 #0A0A0A;
+  background: #FFFFFF;
+  border-radius: 2rem;
+}
+.grid-bg { background: #87CEEB; }

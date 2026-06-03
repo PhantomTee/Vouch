@@ -1,3 +1,18 @@
-import { Database } from "lucide-react";
 import { env } from "@/lib/env";
-export function WalrusStorageCard() { const ready = Boolean(env.walrusPublisherUrl && env.walrusAggregatorUrl); return <div className="rounded-3xl border border-line bg-panel p-5"><div className="flex items-center gap-2"><Database className={ready ? "text-brand-green" : "text-brand-amber"} /><h3 className="font-bold">Walrus storage</h3></div><p className="mt-3 text-sm text-slate-300">{ready ? "Publisher and aggregator configured" : "Configure Walrus endpoints"}</p><p className="mt-2 text-xs text-slate-500">Uploads fail loudly until real Walrus URLs are set.</p></div>; }
+
+export function WalrusStorageCard() {
+  const ready = Boolean(env.walrusPublisherUrl && env.walrusAggregatorUrl);
+
+  return (
+    <div className="card-neo p-6" style={{ backgroundColor: ready ? "#F5C842" : "#FFFFFF" }}>
+      <div className="flex items-center gap-3">
+        <span className={`h-3 w-3 flex-shrink-0 rounded-full border-2 border-ink ${ready ? "bg-brand-green" : "bg-coral"}`} />
+        <h3 className="font-mono text-sm font-bold uppercase tracking-widest text-ink">Walrus Storage</h3>
+      </div>
+      <p className="mt-4 font-mono text-sm text-ink/70">
+        {ready ? "Publisher and aggregator configured" : "Configure Walrus endpoints"}
+      </p>
+      <p className="mt-2 font-mono text-xs text-ink/40">Uploads fail loudly until real Walrus URLs are set.</p>
+    </div>
+  );
+}

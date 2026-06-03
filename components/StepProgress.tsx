@@ -1,2 +1,33 @@
-const steps = ["Preparing manifest", "Hashing files", "Uploading evidence to Walrus", "Uploading manifest to Walrus", "Anchoring proof on Sui", "Done"];
-export function StepProgress({ currentStep, error }: { currentStep: number; error?: string }) { return <ol className="space-y-3">{steps.map((step, index) => { const active = index === currentStep; const done = index < currentStep; return <li key={step} className={`flex items-center gap-3 rounded-2xl border p-3 ${done ? "border-brand-green/40 bg-brand-green/10" : active ? "border-brand-blue/50 bg-brand-blue/10" : "border-line bg-white/[.03]"}`}><span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/10 text-sm">{done ? "✓" : index + 1}</span><span>{step}</span>{active && error ? <span className="ml-auto text-sm text-brand-red">Error</span> : null}</li>; })}</ol>; }
+const steps = [
+  "Preparing manifest",
+  "Hashing files",
+  "Uploading evidence to Walrus",
+  "Uploading manifest to Walrus",
+  "Anchoring proof on Sui",
+  "Done",
+];
+
+export function StepProgress({ currentStep, error }: { currentStep: number; error?: string }) {
+  return (
+    <ol className="space-y-2">
+      {steps.map((step, index) => {
+        const active = index === currentStep;
+        const done = index < currentStep;
+        return (
+          <li
+            key={step}
+            className={`flex items-center gap-3 rounded-xl border-2 border-ink p-3 font-mono text-xs ${
+              done ? "bg-brand-green/20" : active ? "bg-gold/40" : "bg-white/60"
+            }`}
+          >
+            <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full border-2 border-ink bg-white text-xs font-bold text-ink">
+              {done ? "✓" : index + 1}
+            </span>
+            <span className="font-bold uppercase tracking-wider text-ink">{step}</span>
+            {active && error ? <span className="ml-auto font-bold text-coral">Error</span> : null}
+          </li>
+        );
+      })}
+    </ol>
+  );
+}

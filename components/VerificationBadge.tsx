@@ -1,1 +1,14 @@
-export function VerificationBadge({ status }: { status: "verified" | "pending" | "error" }) { const map = { verified: "bg-brand-green/15 text-brand-green border-brand-green/40", pending: "bg-brand-amber/15 text-brand-amber border-brand-amber/40", error: "bg-brand-red/15 text-brand-red border-brand-red/40" }; return <span className={`inline-flex rounded-full border px-3 py-1 text-sm font-semibold ${map[status]}`}>{status === "verified" ? "Verified" : status === "pending" ? "Needs verification" : "Verification failed"}</span>; }
+export function VerificationBadge({ status }: { status: "verified" | "pending" | "error" }) {
+  const styles = {
+    verified: "bg-brand-green/20 text-ink border-brand-green",
+    pending:  "bg-gold/30 text-ink border-gold",
+    error:    "bg-coral/20 text-ink border-coral",
+  };
+  const labels = { verified: "✓ Verified", pending: "Needs verification", error: "Verification failed" };
+
+  return (
+    <span className={`inline-flex rounded-full border-2 px-3 py-1 font-mono text-xs font-bold uppercase tracking-wider ${styles[status]}`}>
+      {labels[status]}
+    </span>
+  );
+}
