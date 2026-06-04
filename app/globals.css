@@ -4,9 +4,8 @@
 
 :root {
   color-scheme: light;
-  --color-surface: #87CEEB;
+  --color-surface: #F0F0F0;
 }
-.theme-testnet { --color-surface: #F0F0F0; }
 .theme-mainnet { --color-surface: #87CEEB; }
 
 * { box-sizing: border-box; }

@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { SessionProvider } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { NetworkContext, NETWORK_CONFIGS, setActiveNetwork, type NetworkName } from "@/lib/network";
+import { toast } from "sonner";
 
 const suiNetworks = {
   testnet: { url: typeof window !== "undefined" ? "/api/rpc" : (process.env.NEXT_PUBLIC_TATUM_SUI_RPC_URL || "https://sui-testnet.gateway.tatum.io") },
@@ -35,6 +36,10 @@ export function Providers({ children }: { children: React.ReactNode }) {
     setActiveNetwork(n);
     setNetworkState(n);
     localStorage.setItem("vouch.network", n);
+    toast(`Switched to ${n}`, {
+      description: `Please switch your wallet to ${n} to sign transactions.`,
+      duration: 5000,
+    });
   }
 
   return (

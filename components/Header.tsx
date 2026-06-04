@@ -4,6 +4,7 @@ import { signIn, signOut, useSession } from "next-auth/react";
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
 import { WalletButton } from "@/components/WalletButton";
+import { NetworkToggle } from "@/components/NetworkToggle";
 import { useNetwork } from "@/lib/network";
 
 const navLinks: { href: string; label: string; external?: boolean }[] = [
@@ -38,14 +39,11 @@ export function Header() {
         </nav>
 
         <div className="flex shrink-0 items-center gap-2">
-          <button
-            onClick={() => setNetwork(network === "testnet" ? "mainnet" : "testnet")}
-            className={`hidden items-center rounded-xl border-2 border-ink px-3 py-1.5 font-mono text-[10px] font-bold uppercase tracking-widest md:flex ${
-              network === "mainnet" ? "bg-brand-green/20 text-ink" : "bg-white text-ink/50"
-            }`}
-          >
-            {network}
-          </button>
+          {/* Network toggle - desktop */}
+          <div className="hidden md:flex">
+            <NetworkToggle />
+          </div>
+
           {/* GitHub identity */}
           {session?.user ? (
             <button
@@ -118,15 +116,11 @@ export function Header() {
               )
             )}
 
-            {/* Network toggle */}
-            <button
-              onClick={() => { setNetwork(network === "testnet" ? "mainnet" : "testnet"); setOpen(false); }}
-              className={`mt-4 w-full rounded-2xl border-2 border-ink px-4 py-3 font-mono text-sm font-bold uppercase tracking-widest ${
-                network === "mainnet" ? "bg-brand-green/20 text-ink" : "bg-white text-ink/50"
-              }`}
-            >
-              {network === "testnet" ? "Switch to Mainnet" : "Switch to Testnet"}
-            </button>
+            {/* Network toggle - mobile */}
+            <div className="mt-6">
+              <p className="mb-2 font-mono text-xs font-bold uppercase tracking-widest text-ink/40">Network</p>
+              <NetworkToggle />
+            </div>
 
             {/* GitHub identity */}
             <div className="mt-auto pb-8 pt-6">
