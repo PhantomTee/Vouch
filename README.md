@@ -1,185 +1,154 @@
 # Vouch
 
-**Vouch is a verifiable proof-of-build registry for Sui projects. It stores project evidence on Walrus, anchors proof hashes on Sui, and uses Tatum RPC to make every build easy to verify and share.**
+**Proof-of-build registry for Sui. Anchor project evidence on Walrus, lock the hash on Sui, verify it anywhere.**
 
-Hackathon projects, grant submissions, and builder portfolios often depend on mutable links. Vouch gives each build a signed, timestamped proof record with evidence stored on Walrus and proof hashes anchored on Sui.
+Live: [vouch-proof.vercel.app](https://vouch-proof.vercel.app)
 
-## Why it matters
+---
 
-Builders need a simple way to prove that a project existed at a point in time, with evidence that can be independently checked. Vouch turns project artifacts into a manifest, hashes every file in the browser, uploads files and the manifest to Walrus, then records the manifest hash and blob ID on Sui.
+## What it does
 
-## Hackathon fit
+Builders submit projects to hackathons and grant programs using links that can be edited or deleted after the deadline. Git history can be rewritten. Screenshots can be staged. Vouch fixes this.
 
-- **Meaningful Walrus storage integration:** evidence files and the manifest JSON are uploaded through a configurable Walrus publisher, and public pages can fetch manifests through a Walrus aggregator.
-- **Real Tatum Sui RPC usage:** `lib/tatum/rpc.ts` calls the configured Tatum Sui JSON-RPC gateway and includes `x-api-key` when provided.
-- **Sui Testnet/Mainnet support:** environment variables select network, Tatum gateway, deployed package ID, and object links.
-- **2–3 minute demo UX:** create proof, upload evidence, anchor on Sui, and share `/vouch/[objectId]`.
+When you create a Vouch proof:
 
-## Architecture
+1. Every evidence file is SHA-256 hashed in the browser
+2. Files are uploaded to Walrus decentralised storage
+3. A JSON manifest collecting all hashes and project metadata is created and also uploaded to Walrus
+4. The manifest hash and Walrus blob ID are anchored on Sui via a signed wallet transaction
 
-```text
-Builder browser
-  ├─ hashes files with Web Crypto SHA-256
-  ├─ uploads evidence blobs ───────────────► Walrus Publisher
-  ├─ creates + uploads manifest JSON ──────► Walrus Publisher
-  ├─ signs Sui transaction with wallet ────► Sui Move package: vouch::vouch
-  └─ reads proof page ─────► Tatum Sui RPC ─► Sui object state/events
-                         └► Walrus Aggregator ─► manifest JSON
-```
+The resulting Sui object has an immutable blockchain timestamp. Anyone can independently fetch the manifest from Walrus, re-hash it, and confirm it matches the on-chain record. No trust in Vouch required.
+
+---
+
+## Features
+
+- **GitHub identity verification** - Sign in with GitHub OAuth before creating a proof. Your username is embedded in the manifest, cryptographically linking your GitHub identity to your Sui wallet. Impersonation is impossible.
+- **GitHub repo import** - Import project name, tagline, description, category, and README directly from any public repo in one click.
+- **Walrus evidence storage** - Upload screenshots, PDFs, READMEs, architecture diagrams, and other build artifacts. Each file is individually hashed before upload.
+- **Sui Seal encryption** - Toggle any evidence file to Private. Files are encrypted client-side using Sui Seal before going to Walrus. Only the owner wallet can decrypt them. Not even Vouch can read private files.
+- **On-chain anchoring via Tatum RPC** - Proof pages read Sui state directly through the Tatum Sui JSON-RPC gateway. No Vouch servers are involved in verification.
+- **Independent verification tool** - Paste any proof URL at `/verify`. The tool re-fetches the Walrus blob, re-computes the SHA-256, and compares it to the on-chain hash step by step.
+- **SuiNS resolution** - Owner addresses resolve to `.sui` names where available.
+- **Update proof** - Add new evidence files to an existing proof. Each update increments the version number and re-anchors a new manifest on Sui.
+- **Public builder profiles** - Every GitHub user gets a profile page at `/u/[username]` listing all their verified proofs.
+- **Explore with search and filter** - Browse all proofs by category or search by title, tagline, or wallet address.
+
+---
 
 ## Tech stack
 
-- Next.js App Router, TypeScript, Tailwind CSS
-- Sui dapp-kit wallet connection
-- `@mysten/sui` transaction builder helpers in `lib/sui/transactions.ts`
-- Tatum Sui JSON-RPC wrapper
-- Walrus HTTP publisher/aggregator wrapper
-- LottieFiles React player with safe CSS fallbacks
-- Sui Move package in `move/`
+| Layer | Technology |
+|---|---|
+| Frontend | Next.js 14 App Router, TypeScript, Tailwind CSS |
+| Wallet | Sui dapp-kit, @mysten/sui |
+| On-chain reads | Tatum Sui JSON-RPC (`lib/tatum/rpc.ts`) |
+| Decentralised storage | Walrus HTTP publisher + aggregator |
+| Encryption | Sui Seal threshold encryption (`@mysten/seal`) |
+| Identity | NextAuth.js with GitHub OAuth provider |
+| Name resolution | SuiNS via `suix_resolveNameServiceNames` |
+| Move contract | Sui Move 2024 edition (`move/sources/vouch.move`) |
 
-## Environment variables
+---
 
-Copy `.env.example` to `.env.local`:
+## How it works
+
+```
+Browser
+  ├── SHA-256 hash each file (Web Crypto API)
+  ├── [optional] Seal-encrypt private files before upload
+  ├── Upload evidence files ──────────────► Walrus Publisher
+  ├── Build + upload manifest JSON ───────► Walrus Publisher
+  ├── Sign Sui transaction ───────────────► vouch::vouch::create_project
+  │
+  └── Proof page
+        ├── Read VouchProject object ──────► Tatum Sui RPC
+        └── Fetch manifest ────────────────► Walrus Aggregator
+```
+
+The Move contract stores `manifest_blob_id` and `manifest_hash` on-chain. The verification tool uses these two values to independently confirm the manifest has not been altered.
+
+---
+
+## Contract
+
+Deployed on Sui Testnet:
+
+| Field | Value |
+|---|---|
+| Package ID | `0x900febc5ddfd0ff86b07c765ebfefce0d0b9fda1ef26f72dfb8e3a17d4340b30` |
+| Network | Sui Testnet |
+
+Entry functions:
+
+- `vouch::vouch::create_project` - create a new proof object
+- `vouch::vouch::update_project` - append new evidence and re-anchor
+- `vouch::vouch::deactivate_project` - deactivate a proof
+- `vouch::vouch::seal_approve` - Sui Seal access policy (owner-only decryption)
+
+Events emitted:
+
+- `ProjectCreated` - indexed by the Explore page via `suix_queryEvents`
+- `ProjectUpdated` - tracks version history
+
+---
+
+## Local setup
 
 ```bash
 cp .env.example .env.local
+npm install
+npm run dev
 ```
+
+```bash
+npm run typecheck
+npm run build
+```
+
+---
+
+## Environment variables
 
 ```env
 NEXT_PUBLIC_APP_NAME=Vouch
 NEXT_PUBLIC_SUI_NETWORK=testnet
 NEXT_PUBLIC_TATUM_SUI_RPC_URL=https://sui-testnet.gateway.tatum.io
-NEXT_PUBLIC_TATUM_API_KEY=
-NEXT_PUBLIC_PACKAGE_ID=
-NEXT_PUBLIC_REGISTRY_ID=
-NEXT_PUBLIC_WALRUS_PUBLISHER_URL=
-NEXT_PUBLIC_WALRUS_AGGREGATOR_URL=
+NEXT_PUBLIC_TATUM_API_KEY=your_tatum_key
+NEXT_PUBLIC_PACKAGE_ID=0x900febc5ddfd0ff86b07c765ebfefce0d0b9fda1ef26f72dfb8e3a17d4340b30
+NEXT_PUBLIC_WALRUS_PUBLISHER_URL=https://publisher.walrus-testnet.walrus.space
+NEXT_PUBLIC_WALRUS_AGGREGATOR_URL=https://aggregator.walrus-testnet.walrus.space
+GITHUB_CLIENT_ID=your_github_client_id
+GITHUB_CLIENT_SECRET=your_github_client_secret
+NEXTAUTH_SECRET=your_nextauth_secret
+NEXTAUTH_URL=https://your-deployment-url.vercel.app
 ```
 
-Never commit private API keys. The browser app only reads public `NEXT_PUBLIC_*` values. For production, prefer a server-side proxy if your Tatum key should not be exposed.
+---
 
-## Run locally
+## Walrus endpoints
 
-```bash
-npm install
-npm run dev
-```
+Vouch uses the standard Walrus HTTP API:
 
-Quality checks:
+- `PUT {publisher}/v1/blobs` for uploads
+- `GET {aggregator}/v1/blobs/{blobId}` for reads
 
-```bash
-npm run lint
-npm run typecheck
-npm run build
-```
+Public Walrus testnet endpoints are pre-configured in the deployed app.
 
+---
 
-## Deploy on Vercel
+## Tatum RPC
 
-This repository includes `vercel.json` so Vercel treats the project as a Next.js app and runs the same production build command used locally.
+All on-chain reads go through the Tatum Sui gateway. The API key is sent as the `x-api-key` header. In the browser, requests are proxied through `/api/rpc` to avoid CORS issues with SDK-injected headers.
 
-1. Import the repository in Vercel.
-2. Keep the project root as the repository root.
-3. Add the environment variables from `.env.example` in the Vercel project settings.
-4. Deploy. Vercel should run `npm install` and `npm run build`, then serve the App Router routes from `.next`.
+Docs: [docs.tatum.io/reference/rpc-sui](https://docs.tatum.io/reference/rpc-sui)
 
-If Vercel shows a platform `404: NOT_FOUND` immediately after import, verify that the deployment finished successfully and that the project root is not pointed at `move/` or another subdirectory.
+---
 
-## Deploy the Move package
+## Sui Seal
 
-Install and configure the Sui CLI, then publish to testnet:
+Private evidence files are encrypted using Sui Seal before upload. The encryption ID is derived from the owner's wallet address, creating an owner-only access policy enforced by the `seal_approve` entry function in the Move contract.
 
-```bash
-sui client switch --env testnet
-sui client publish move --gas-budget 100000000
-```
+The Seal key server used: `0xb012378c9f3799fb5b1a7083da74a4069e3c3f1c93de0b27212a5799ce1e1e98`
 
-After publishing, copy the package ID into `.env.local`:
-
-```env
-NEXT_PUBLIC_PACKAGE_ID=0xYOUR_PACKAGE_ID
-```
-
-The frontend transaction helper calls:
-
-- `vouch::vouch::create_project`
-- `vouch::vouch::update_project`
-- `vouch::vouch::deactivate_project`
-
-The contract emits `ProjectCreated` and `ProjectUpdated` events for indexing.
-
-## Configure Tatum Sui RPC
-
-Use the Tatum Sui gateway URL for your selected network:
-
-- Testnet: `https://sui-testnet.gateway.tatum.io`
-- Mainnet: `https://sui-mainnet.gateway.tatum.io`
-
-Set `NEXT_PUBLIC_TATUM_API_KEY` if your gateway requires authentication. Vouch sends it as the `x-api-key` header and performs a lightweight `sui_getProtocolConfig` status check.
-
-References:
-
-- https://docs.tatum.io/reference/rpc-sui
-- https://tatum.io/chain/sui
-- https://docs.sui.io/sui-api-ref
-
-## Configure Walrus
-
-Set a Walrus publisher and aggregator URL:
-
-```env
-NEXT_PUBLIC_WALRUS_PUBLISHER_URL=https://publisher.example
-NEXT_PUBLIC_WALRUS_AGGREGATOR_URL=https://aggregator.example
-```
-
-Vouch uses the Walrus HTTP store/read pattern:
-
-- `PUT {publisher}/v1/blobs` for evidence and manifest uploads
-- `GET {aggregator}/v1/blobs/{blobId}` for manifest reads
-
-If the publisher is not configured, Vouch returns a typed error and does **not** fake successful Walrus uploads.
-
-References:
-
-- https://docs.wal.app/
-- https://walrus.xyz/
-
-## Demo flow
-
-1. Open `/` and point out the Tatum RPC status card and Walrus config card.
-2. Click **Create Vouch**.
-3. Connect a Sui wallet.
-4. Enter project metadata and add one evidence file.
-5. Submit. Vouch hashes files, uploads evidence to Walrus, uploads the manifest to Walrus, then asks the wallet to anchor on Sui.
-6. Share the generated `/vouch/[objectId]` page.
-7. On the proof page, show Sui object ID, transaction digest, manifest hash, Walrus blob ID, evidence hashes, and explorer links.
-
-## Contract addresses
-
-| Network | Package ID | Notes |
-| --- | --- | --- |
-| Sui Testnet | `TODO` | Set `NEXT_PUBLIC_PACKAGE_ID` after publish. |
-| Sui Mainnet | `TODO` | Optional production deployment. |
-
-## Screenshots
-
-Add screenshots after deployment:
-
-- Landing page
-- Create Vouch flow
-- Public proof verification page
-
-## Known limitations
-
-- Explore and My Proofs use browser local cache in the MVP. The Move contract emits events so full indexing can be added with `suix_queryEvents`.
-- Tatum API keys in `NEXT_PUBLIC_*` variables are visible to browsers. Use a server route or proxy for production key secrecy.
-- Lottie JSON files are optional; components render CSS/icon fallbacks until files are added to `public/animations/`.
-- Walrus publisher/aggregator CORS behavior depends on the deployed endpoint.
-
-## Future work
-
-- Add a backend/indexer for global event search and owner filtering.
-- Add update proof flow for new versions.
-- Add server-side Tatum key proxy.
-- Add manifest integrity re-hashing on the proof page.
-- Add richer deployment badges for Sui package/object links.
+Docs: [seal-docs.wal.app](https://seal-docs.wal.app)
