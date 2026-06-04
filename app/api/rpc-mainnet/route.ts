@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 
 const TATUM_URL = process.env.NEXT_PUBLIC_TATUM_SUI_RPC_URL_MAINNET || "https://sui-mainnet.gateway.tatum.io";
-const TATUM_KEY = process.env.NEXT_PUBLIC_TATUM_API_KEY || "";
+const TATUM_KEY = process.env.NEXT_PUBLIC_TATUM_API_KEY_MAINNET || "";
 
 export async function POST(request: NextRequest) {
   const body = await request.text();
