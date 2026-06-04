@@ -4,6 +4,7 @@ import "@mysten/dapp-kit/dist/index.css";
 import "./globals.css";
 import { Providers } from "@/components/Providers";
 import { Header } from "@/components/Header";
+import { NetworkTheme } from "@/components/NetworkTheme";
 
 const anton = Anton({ weight: "400", subsets: ["latin"], variable: "--font-anton" });
 const spaceMono = Space_Mono({ weight: ["400", "700"], subsets: ["latin"], variable: "--font-space-mono" });
@@ -30,6 +31,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <html lang="en" className={`${anton.variable} ${spaceMono.variable}`}>
       <body>
         <Providers>
+          <NetworkTheme />
           <Header />
           {children}
         </Providers>

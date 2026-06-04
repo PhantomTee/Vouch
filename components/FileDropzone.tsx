@@ -23,7 +23,7 @@ export function FileDropzone({ files, onFiles, sealedSet, onToggleSeal }: FileDr
       onDragOver={(e) => e.preventDefault()}
       onDrop={(e) => { e.preventDefault(); add(e.dataTransfer.files); }}
       className="card-neo p-8 text-center"
-      style={{ borderStyle: "dashed", backgroundColor: "#87CEEB33" }}
+      style={{ borderStyle: "dashed", backgroundColor: "color-mix(in srgb, var(--color-surface) 30%, transparent)" }}
     >
       <UploadCloud className="mx-auto mb-4 text-ink" size={36} />
       <p className="font-mono text-sm font-bold uppercase tracking-wider text-ink">Drag evidence files here</p>

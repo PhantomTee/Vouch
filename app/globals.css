@@ -2,7 +2,13 @@
 @tailwind components;
 @tailwind utilities;
 
-:root { color-scheme: light; }
+:root {
+  color-scheme: light;
+  --color-surface: #87CEEB;
+}
+.theme-testnet { --color-surface: #F0F0F0; }
+.theme-mainnet { --color-surface: #87CEEB; }
+
 * { box-sizing: border-box; }
 
 html { overflow-x: hidden; }
@@ -10,7 +16,7 @@ html { overflow-x: hidden; }
 body {
   margin: 0;
   overflow-x: hidden;
-  background: #87CEEB;
+  background: var(--color-surface);
   color: #0A0A0A;
   font-family: var(--font-space-mono), "Courier New", monospace;
 }
@@ -98,4 +104,4 @@ body {
   background: #FFFFFF;
   border-radius: 2rem;
 }
-.grid-bg { background: #87CEEB; }
+.grid-bg { background: var(--color-surface); }

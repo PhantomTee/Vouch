@@ -181,7 +181,7 @@ export function ProofViewer({ objectId }: { objectId: string }) {
         </section>
 
         <aside className="space-y-5">
-          <div className="card-neo flex items-center justify-center p-8" style={{ backgroundColor: "#87CEEB" }}>
+          <div className="card-neo flex items-center justify-center p-8" style={{ backgroundColor: "var(--color-surface)" }}>
             <CartoonMascot className="w-36 animate-float" />
           </div>
           <ProofTimeline createdAt={proof?.createdAt} updatedAt={proof?.updatedAt} version={proof?.version} />

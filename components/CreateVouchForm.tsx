@@ -315,7 +315,7 @@ export function CreateVouchForm() {
       </section>
 
       <aside className="space-y-6">
-        <div className="card-neo flex items-center justify-center p-8" style={{ backgroundColor: "#87CEEB" }}>
+        <div className="card-neo flex items-center justify-center p-8" style={{ backgroundColor: "var(--color-surface)" }}>
           <CartoonMascot className="w-40 animate-peek" />
         </div>
         <div className="card-neo p-5">

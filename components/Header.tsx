@@ -20,7 +20,7 @@ export function Header() {
   const { network, setNetwork } = useNetwork();
 
   return (
-    <header className="sticky top-0 z-40 border-b-4 border-ink bg-[#87CEEB]">
+    <header className="sticky top-0 z-40 border-b-4 border-ink bg-[var(--color-surface)]">
       <div className="mx-auto flex h-[60px] max-w-7xl items-center justify-between gap-4 px-4 sm:h-[68px] sm:px-6">
         <Link href="/" className="shrink-0 font-display text-xl tracking-tight text-ink sm:text-2xl">
           VOUCH
@@ -81,7 +81,7 @@ export function Header() {
 
       {/* Full-screen mobile overlay */}
       {open && (
-        <div className="fixed inset-0 z-50 flex flex-col bg-[#87CEEB] md:hidden">
+        <div className="fixed inset-0 z-50 flex flex-col bg-[var(--color-surface)] md:hidden">
           {/* Overlay header row */}
           <div className="flex h-[60px] items-center justify-between border-b-4 border-ink px-4 sm:h-[68px] sm:px-6">
             <Link href="/" className="font-display text-xl tracking-tight text-ink sm:text-2xl" onClick={() => setOpen(false)}>
