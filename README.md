@@ -33,6 +33,7 @@ The resulting Sui object has an immutable blockchain timestamp. Anyone can indep
 - **Update proof** - Add new evidence files to an existing proof. Each update increments the version number and re-anchors a new manifest on Sui.
 - **Public builder profiles** - Every GitHub user gets a profile page at `/u/[username]` listing all their verified proofs.
 - **Explore with search and filter** - Browse all proofs by category or search by title, tagline, or wallet address.
+- **Vouch Grants** - Funders lock SUI on-chain against a specific build milestone. The builder uploads completion evidence to Walrus and anchors the proof hash on Sui. The funder reviews the evidence and releases the funds. If the builder has not yet submitted, the funder can cancel and reclaim their SUI. The full escrow lifecycle lives entirely on-chain with no intermediary.
 
 ---
 
@@ -47,11 +48,14 @@ The resulting Sui object has an immutable blockchain timestamp. Anyone can indep
 | Encryption | Sui Seal threshold encryption (`@mysten/seal`) |
 | Identity | NextAuth.js with GitHub OAuth provider |
 | Name resolution | SuiNS via `suix_resolveNameServiceNames` |
-| Move contract | Sui Move 2024 edition (`move/sources/vouch.move`) |
+| Proof contract | Sui Move 2024 edition (`move/sources/vouch.move`) |
+| Grants contract | Sui Move 2024 edition (`move/sources/vouch_grants.move`) |
 
 ---
 
 ## How it works
+
+### Proof creation
 
 ```
 Browser
@@ -68,11 +72,43 @@ Browser
 
 The Move contract stores `manifest_blob_id` and `manifest_hash` on-chain. The verification tool uses these two values to independently confirm the manifest has not been altered.
 
+### Vouch Grants flow
+
+```
+Builder
+  └── create_milestone(projectId, title, description, rewardMist)
+        └── Milestone object shared on Sui, status: open
+
+Funder
+  └── fund_milestone(milestoneId, coin)
+        └── SUI locked in escrow inside the Milestone object, status: funded
+
+Builder (after completing the work)
+  ├── SHA-256 hash each completion evidence file
+  ├── Upload evidence files ──────────────► Walrus Publisher
+  ├── Build + upload completion manifest ─► Walrus Publisher
+  └── submit_proof(milestoneId, proofBlobId, proofHash)
+        └── Walrus blob ID + manifest hash anchored on Sui, status: submitted
+
+Funder (after reviewing on-chain evidence)
+  └── release_funds(milestoneId)
+        └── Escrowed SUI transferred to builder, status: released
+
+  or
+
+  └── cancel_and_refund(milestoneId)    [only before builder submits]
+        └── Escrowed SUI returned to funder, status: cancelled
+```
+
+All state transitions are enforced by the Move contract. The funder cannot release to anyone other than the builder. The builder cannot submit proof before funding. No party can bypass the escrow.
+
 ---
 
-## Contract
+## Contracts
 
-Deployed on Sui Testnet:
+Both contracts are deployed on Sui Testnet.
+
+### vouch (proof registry)
 
 | Field | Value |
 |---|---|
@@ -91,12 +127,36 @@ Events emitted:
 - `ProjectCreated` - indexed by the Explore page via `suix_queryEvents`
 - `ProjectUpdated` - tracks version history
 
+### vouch_grants (milestone escrow)
+
+| Field | Value |
+|---|---|
+| Package ID | `0x43bfb194938bd12abf1f51a0155f05d90150f2d8b3ff2cece1094663cef19dd7` |
+| Network | Sui Testnet |
+
+Entry functions:
+
+- `grants::create_milestone` - builder creates a milestone linked to a VouchProject object ID
+- `grants::fund_milestone` - funder deposits exact SUI into the milestone escrow
+- `grants::submit_proof` - builder submits a Walrus blob ID and manifest hash as completion proof
+- `grants::release_funds` - funder approves the proof and transfers SUI to the builder
+- `grants::cancel_and_refund` - funder cancels before proof is submitted and reclaims SUI
+
+Events emitted:
+
+- `MilestoneCreated` - indexed by `/grants` explorer via `suix_queryEvents`
+- `MilestoneFunded` - records funder address and timestamp
+- `ProofSubmitted` - records Walrus blob ID and proof hash on-chain
+- `FundsReleased` - records payout amount and timestamp
+- `MilestoneCancelled` - records cancellation
+
 ---
 
 ## Local setup
 
 ```bash
 cp .env.example .env.local
+# fill in your values (see Environment variables below)
 npm install
 npm run dev
 ```
@@ -108,6 +168,34 @@ npm run build
 
 ---
 
+## Deploying the contracts
+
+The package IDs in `.env.example` point to the deployed testnet contracts. If you want to deploy your own copies:
+
+**Prerequisites:**
+- [Sui CLI installed](https://docs.sui.io/guides/developer/getting-started/sui-install)
+- A Sui testnet wallet with test SUI (from the [faucet](https://faucet.sui.io))
+
+**Deploy vouch (proof registry):**
+
+```bash
+cd move
+sui client publish --gas-budget 100000000
+```
+
+The CLI output contains a `Published Objects` section. Copy the `PackageID` value and set it as `NEXT_PUBLIC_PACKAGE_ID`.
+
+**Deploy vouch_grants (milestone escrow):**
+
+The grants contract lives in the same Move package (`move/sources/vouch_grants.move`). Publishing the package once deploys both modules. The same Package ID covers both contracts:
+
+- Use the same Package ID for `NEXT_PUBLIC_GRANTS_PACKAGE_ID` if you are deploying fresh
+- The deployed app uses separate IDs because the grants module was added and published after the initial vouch deployment
+
+After publishing, copy the Package ID from the CLI output and update both `NEXT_PUBLIC_PACKAGE_ID` and `NEXT_PUBLIC_GRANTS_PACKAGE_ID` in your `.env.local`.
+
+---
+
 ## Environment variables
 
 ```env
@@ -116,6 +204,7 @@ NEXT_PUBLIC_SUI_NETWORK=testnet
 NEXT_PUBLIC_TATUM_SUI_RPC_URL=https://sui-testnet.gateway.tatum.io
 NEXT_PUBLIC_TATUM_API_KEY=your_tatum_key
 NEXT_PUBLIC_PACKAGE_ID=0x900febc5ddfd0ff86b07c765ebfefce0d0b9fda1ef26f72dfb8e3a17d4340b30
+NEXT_PUBLIC_GRANTS_PACKAGE_ID=0x43bfb194938bd12abf1f51a0155f05d90150f2d8b3ff2cece1094663cef19dd7
 NEXT_PUBLIC_WALRUS_PUBLISHER_URL=https://publisher.walrus-testnet.walrus.space
 NEXT_PUBLIC_WALRUS_AGGREGATOR_URL=https://aggregator.walrus-testnet.walrus.space
 GITHUB_CLIENT_ID=your_github_client_id
@@ -123,6 +212,8 @@ GITHUB_CLIENT_SECRET=your_github_client_secret
 NEXTAUTH_SECRET=your_nextauth_secret
 NEXTAUTH_URL=https://your-deployment-url.vercel.app
 ```
+
+`NEXT_PUBLIC_PACKAGE_ID` and `NEXT_PUBLIC_GRANTS_PACKAGE_ID` are the on-chain package addresses you get from `sui client publish`. The Tatum API key is available at [tatum.io](https://tatum.io) after creating a free account. GitHub OAuth credentials come from a [GitHub OAuth App](https://github.com/settings/developers).
 
 ---
 
