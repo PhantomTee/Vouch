@@ -17,6 +17,10 @@ export async function getRpcStatus(): Promise<{ ok: boolean; label: string; deta
 
 export async function getObject(objectId: string) { return tatumRpc("sui_getObject", [objectId, { showContent: true, showOwner: true, showPreviousTransaction: true, showDisplay: true }]); }
 export async function queryCreatedEvents(packageId: string, limit = 20) { return tatumRpc("suix_queryEvents", [{ MoveEventType: `${packageId}::vouch::ProjectCreated` }, null, limit, true]); }
+export async function queryMilestoneEvents(grantsPackageId: string, limit = 50) {
+  return tatumRpc("suix_queryEvents", [{ MoveEventType: `${grantsPackageId}::grants::MilestoneCreated` }, null, limit, true]);
+}
+
 export async function resolveNameServiceNames(address: string): Promise<string | null> {
   try {
     const res = await tatumRpc<{ data: string[] }>("suix_resolveNameServiceNames", [address, null, 1]);

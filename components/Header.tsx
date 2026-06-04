@@ -8,6 +8,7 @@ import { WalletButton } from "@/components/WalletButton";
 const navLinks: { href: string; label: string; external?: boolean }[] = [
   { href: "/create", label: "Create" },
   { href: "/explore", label: "Explore" },
+  { href: "/grants", label: "Grants" },
   { href: "/me", label: "My Proofs" },
   { href: "/how-to-use", label: "How to Use" },
 ];

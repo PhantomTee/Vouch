@@ -9,5 +9,6 @@ export const env = {
   packageId: process.env.NEXT_PUBLIC_PACKAGE_ID || "",
   registryId: process.env.NEXT_PUBLIC_REGISTRY_ID || "",
   walrusPublisherUrl: process.env.NEXT_PUBLIC_WALRUS_PUBLISHER_URL || "",
-  walrusAggregatorUrl: process.env.NEXT_PUBLIC_WALRUS_AGGREGATOR_URL || ""
+  walrusAggregatorUrl: process.env.NEXT_PUBLIC_WALRUS_AGGREGATOR_URL || "",
+  grantsPackageId: process.env.NEXT_PUBLIC_GRANTS_PACKAGE_ID || "",
 };

@@ -7,10 +7,11 @@ const steps = [
   "Done",
 ];
 
-export function StepProgress({ currentStep, error }: { currentStep: number; error?: string }) {
+export function StepProgress({ currentStep, error, steps: overrideSteps }: { currentStep: number; error?: string; steps?: string[] }) {
+  const displaySteps = overrideSteps ?? steps;
   return (
     <ol className="space-y-2">
-      {steps.map((step, index) => {
+      {displaySteps.map((step, index) => {
         const active = index === currentStep;
         const done = index < currentStep;
         return (
