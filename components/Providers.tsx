@@ -7,7 +7,7 @@ import { SessionProvider } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { NETWORK_CONFIGS, setActiveNetwork, type NetworkName } from "@/lib/network";
 import { NetworkContext } from "@/lib/networkContext";
-import { toast } from "sonner";
+import { NetworkAutoDetect } from "@/components/NetworkAutoDetect";
 
 const suiNetworks = {
   testnet: { url: typeof window !== "undefined" ? "/api/rpc" : (process.env.NEXT_PUBLIC_TATUM_SUI_RPC_URL || "https://sui-testnet.gateway.tatum.io") },
@@ -37,10 +37,6 @@ export function Providers({ children }: { children: React.ReactNode }) {
     setActiveNetwork(n);
     setNetworkState(n);
     localStorage.setItem("vouch.network", n);
-    toast(`Switched to ${n}`, {
-      description: `Please switch your wallet to ${n} to sign transactions.`,
-      duration: 5000,
-    });
   }
 
   return (
@@ -52,7 +48,10 @@ export function Providers({ children }: { children: React.ReactNode }) {
             network={network}
             createClient={(_n, config) => createTatumSuiClient(config.url)}
           >
-            <WalletProvider autoConnect>{children}</WalletProvider>
+            <WalletProvider autoConnect>
+              <NetworkAutoDetect />
+              {children}
+            </WalletProvider>
           </SuiClientProvider>
         </NetworkContext.Provider>
       </QueryClientProvider>

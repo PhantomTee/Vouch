@@ -1,5 +1,6 @@
 "use client";
 
+import { toast } from "sonner";
 import { useNetwork, type NetworkName } from "@/lib/networkContext";
 
 export function NetworkToggle() {
@@ -7,7 +8,12 @@ export function NetworkToggle() {
   const isMainnet = network === "mainnet";
 
   function toggle() {
-    setNetwork(isMainnet ? "testnet" : "mainnet");
+    const next: NetworkName = isMainnet ? "testnet" : "mainnet";
+    setNetwork(next);
+    toast(`Switched to ${next}`, {
+      description: `Switch your wallet to ${next} too to sign transactions.`,
+      duration: 6000,
+    });
   }
 
   return (
