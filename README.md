@@ -156,7 +156,7 @@ Events emitted:
 
 ```bash
 cp .env.example .env.local
-# fill in your values (see Environment variables below)
+# fill in TATUM_API_KEY, GitHub OAuth credentials, and NEXTAUTH_SECRET
 npm install
 npm run dev
 ```
@@ -168,35 +168,9 @@ npm run build
 
 ---
 
-## Deploying the contracts
-
-The package IDs in `.env.example` point to the deployed testnet contracts. If you want to deploy your own copies:
-
-**Prerequisites:**
-- [Sui CLI installed](https://docs.sui.io/guides/developer/getting-started/sui-install)
-- A Sui testnet wallet with test SUI (from the [faucet](https://faucet.sui.io))
-
-**Deploy vouch (proof registry):**
-
-```bash
-cd move
-sui client publish --gas-budget 100000000
-```
-
-The CLI output contains a `Published Objects` section. Copy the `PackageID` value and set it as `NEXT_PUBLIC_PACKAGE_ID`.
-
-**Deploy vouch_grants (milestone escrow):**
-
-The grants contract lives in the same Move package (`move/sources/vouch_grants.move`). Publishing the package once deploys both modules. The same Package ID covers both contracts:
-
-- Use the same Package ID for `NEXT_PUBLIC_GRANTS_PACKAGE_ID` if you are deploying fresh
-- The deployed app uses separate IDs because the grants module was added and published after the initial vouch deployment
-
-After publishing, copy the Package ID from the CLI output and update both `NEXT_PUBLIC_PACKAGE_ID` and `NEXT_PUBLIC_GRANTS_PACKAGE_ID` in your `.env.local`.
-
----
-
 ## Environment variables
+
+The contract addresses below point to the live deployed contracts on Sui Testnet and are pre-filled in `.env.example`. You only need to supply your own Tatum API key, GitHub OAuth credentials, and NextAuth secret.
 
 ```env
 NEXT_PUBLIC_APP_NAME=Vouch
@@ -213,7 +187,7 @@ NEXTAUTH_SECRET=your_nextauth_secret
 NEXTAUTH_URL=https://your-deployment-url.vercel.app
 ```
 
-`NEXT_PUBLIC_PACKAGE_ID` and `NEXT_PUBLIC_GRANTS_PACKAGE_ID` are the on-chain package addresses you get from `sui client publish`. The Tatum API key is available at [tatum.io](https://tatum.io) after creating a free account. GitHub OAuth credentials come from a [GitHub OAuth App](https://github.com/settings/developers).
+The Tatum API key is available at [tatum.io](https://tatum.io) after creating a free account. GitHub OAuth credentials come from a [GitHub OAuth App](https://github.com/settings/developers).
 
 ---
 
