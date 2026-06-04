@@ -7,7 +7,7 @@ import { MilestoneCard } from "@/components/MilestoneCard";
 import { MilestoneStatusBadge } from "@/components/MilestoneStatusBadge";
 import { queryMilestoneEvents, getObject } from "@/lib/tatum/rpc";
 import { parseMilestoneFields } from "@/lib/grants/parseMilestone";
-import { env } from "@/lib/env";
+import { useNetwork } from "@/lib/network";
 import type { GrantMilestone, MilestoneStatus } from "@/types/grants";
 
 const STATUS_FILTERS: { label: string; value: MilestoneStatus | "all" }[] = [
@@ -29,10 +29,12 @@ export default function GrantsPage() {
   const [milestones, setMilestones] = useState<GrantMilestone[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<MilestoneStatus | "all">("all");
+  const { config, network } = useNetwork();
 
   useEffect(() => {
-    if (!env.grantsPackageId) { setLoading(false); return; }
-    queryMilestoneEvents(env.grantsPackageId)
+    if (!config.grantsPackageId) { setLoading(false); return; }
+    setLoading(true);
+    queryMilestoneEvents(config.grantsPackageId)
       .then(async (res) => {
         const events = (res as EventsResult).data ?? [];
         const milestoneIds = events.map((e) => e.parsedJson.milestone_id);
@@ -50,7 +52,7 @@ export default function GrantsPage() {
       })
       .catch(() => setMilestones([]))
       .finally(() => setLoading(false));
-  }, []);
+  }, [network, config.grantsPackageId]);
 
   const displayed = filter === "all" ? milestones : milestones.filter((m) => m.status === filter);
 

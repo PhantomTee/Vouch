@@ -5,7 +5,8 @@ import Link from "next/link";
 const CATEGORIES = ["All", "DeFi", "Gaming", "Infrastructure", "Tooling", "Social", "Public goods", "Other"];
 import type { StoredProof } from "@/types/vouch";
 import { queryCreatedEvents } from "@/lib/tatum/rpc";
-import { env } from "@/lib/env";
+import { useNetwork } from "@/lib/network";
+import { NetworkBadge } from "@/components/NetworkBadge";
 
 type EventsResult = {
   data: Array<{
@@ -26,11 +27,15 @@ export function ProofList({ owner, githubLogin }: { owner?: string; githubLogin?
   const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState("All");
   const [search, setSearch] = useState("");
+  const { network, config } = useNetwork();
 
   useEffect(() => {
-    const cached = JSON.parse(localStorage.getItem("vouch.proofs") || "[]") as StoredProof[];
+    setLoading(true);
+    const allCached = JSON.parse(localStorage.getItem("vouch.proofs") || "[]") as StoredProof[];
+    // Proofs without a network field are legacy testnet proofs
+    const cached = allCached.filter((p) => (p.network ?? "testnet") === network);
 
-    if (!env.packageId) {
+    if (!config.packageId) {
       let fallback = owner ? cached.filter((p) => p.owner === owner) : cached;
       if (githubLogin) fallback = fallback.filter((p) => p.manifest?.builder?.links?.github?.toLowerCase().includes(githubLogin.toLowerCase()));
       setProofs(fallback);
@@ -38,7 +43,7 @@ export function ProofList({ owner, githubLogin }: { owner?: string; githubLogin?
       return;
     }
 
-    queryCreatedEvents(env.packageId)
+    queryCreatedEvents(config.packageId)
       .then((res) => {
         const events = (res as EventsResult).data ?? [];
         const fromChain: StoredProof[] = events.map((e) => ({
@@ -76,7 +81,7 @@ export function ProofList({ owner, githubLogin }: { owner?: string; githubLogin?
         setProofs(fb);
       })
       .finally(() => setLoading(false));
-  }, [owner, githubLogin]);
+  }, [owner, githubLogin, network, config.packageId]);
 
   if (loading) {
     return (
@@ -144,11 +149,14 @@ export function ProofList({ owner, githubLogin }: { owner?: string; githubLogin?
             key={proof.objectId}
             className="card-neo block min-w-0 overflow-hidden p-6 transition-transform hover:-translate-y-1"
           >
-            {(proof.version || proof.category) ? (
-              <span className="btn-neo inline-block bg-gold px-3 py-1 text-xs text-ink">
-                {proof.version ? `v${proof.version}` : ""}{proof.version && proof.category ? " · " : ""}{proof.category}
-              </span>
-            ) : null}
+            <div className="flex flex-wrap items-center gap-2">
+              {(proof.version || proof.category) && (
+                <span className="btn-neo inline-block bg-gold px-3 py-1 text-xs text-ink">
+                  {proof.version ? `v${proof.version}` : ""}{proof.version && proof.category ? " · " : ""}{proof.category}
+                </span>
+              )}
+              <NetworkBadge network={proof.network ?? "testnet"} />
+            </div>
             <h2 className="mt-4 line-clamp-2 font-display text-3xl text-ink">{proof.title.toUpperCase()}</h2>
             {proof.tagline ? <p className="mt-2 line-clamp-2 font-mono text-sm text-ink/60">{proof.tagline}</p> : null}
             <p className="mt-4 truncate font-mono text-xs text-ink/40">{proof.objectId}</p>

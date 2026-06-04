@@ -1,19 +1,14 @@
 import { Transaction } from "@mysten/sui/transactions";
-import { env } from "@/lib/env";
+import { getActiveNetworkConfig } from "@/lib/network";
 
 const SUI_CLOCK_OBJECT_ID = "0x6";
 const SUI_OBJECT_ID_PATTERN = /^0x[0-9a-fA-F]+$/;
 
 function requirePackageId() {
-  if (!env.packageId) {
-    throw new Error("NEXT_PUBLIC_PACKAGE_ID is not configured. Deploy the Move package and set the package ID before anchoring proofs.");
-  }
-
-  if (!SUI_OBJECT_ID_PATTERN.test(env.packageId)) {
-    throw new Error("NEXT_PUBLIC_PACKAGE_ID must be a Sui object ID beginning with 0x.");
-  }
-
-  return env.packageId;
+  const { packageId } = getActiveNetworkConfig();
+  if (!packageId) throw new Error("Package ID is not configured for this network. Set the correct NEXT_PUBLIC_PACKAGE_ID env var.");
+  if (!SUI_OBJECT_ID_PATTERN.test(packageId)) throw new Error("Package ID must be a Sui object ID beginning with 0x.");
+  return packageId;
 }
 
 export function buildCreateProjectTx(args: {

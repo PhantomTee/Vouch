@@ -16,6 +16,7 @@ import { encryptForOwner } from "@/lib/seal/client";
 import { buildCreateProjectTx } from "@/lib/sui/transactions";
 import { uploadToWalrus } from "@/lib/walrus/client";
 import type { CreateVouchInput, EvidenceManifestItem, StoredProof } from "@/types/vouch";
+import { useNetwork } from "@/lib/network";
 
 const MAX_FILES = 5;
 const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024;
@@ -58,6 +59,7 @@ export function CreateVouchForm() {
   const account = useCurrentAccount();
   const suiClient = useSuiClient();
   const { data: session } = useSession();
+  const { network } = useNetwork();
   const { mutateAsync: signAndExecuteTransaction } = useSignAndExecuteTransaction({
     execute: async ({ bytes, signature }) =>
       suiClient.executeTransactionBlock({
@@ -156,7 +158,7 @@ export function CreateVouchForm() {
         objectId, txDigest: result.digest, owner: account.address,
         manifestBlobId: manifestUpload.blobId, manifestHash,
         title: parsed.name, tagline: parsed.tagline, category: parsed.category,
-        createdAt: manifest.createdAt, version: 1, manifest
+        createdAt: manifest.createdAt, version: 1, manifest, network
       };
 
       cacheProof(proof);

@@ -1,4 +1,4 @@
-import { env } from "@/lib/env";
+import { getActiveNetworkConfig } from "@/lib/network";
 
 export type WalrusUploadResult = { ok: true; blobId: string; raw: unknown } | { ok: false; message: string; setupHint: string };
 
@@ -8,8 +8,9 @@ function normalizeBase(url: string) { return url.replace(/\/$/, ""); }
 function extractBlobId(data: WalrusStoreResponse): string | undefined { return data.newlyCreated?.blobObject?.blobId || data.newlyCreated?.blobId || data.alreadyCertified?.blobId || data.blobId || data.blob_id; }
 
 export async function uploadToWalrus(body: Blob | string, contentType = "application/octet-stream"): Promise<WalrusUploadResult> {
-  if (!env.walrusPublisherUrl) return { ok: false, message: "Walrus publisher URL is not configured.", setupHint: "Set NEXT_PUBLIC_WALRUS_PUBLISHER_URL to a Walrus publisher endpoint. Vouch will not fake successful uploads." };
-  const response = await fetch(`${normalizeBase(env.walrusPublisherUrl)}/v1/blobs`, { method: "PUT", headers: { "content-type": contentType }, body });
+  const { walrusPublisherUrl } = getActiveNetworkConfig();
+  if (!walrusPublisherUrl) return { ok: false, message: "Walrus publisher URL is not configured.", setupHint: "Set NEXT_PUBLIC_WALRUS_PUBLISHER_URL to a Walrus publisher endpoint. Vouch will not fake successful uploads." };
+  const response = await fetch(`${normalizeBase(walrusPublisherUrl)}/v1/blobs`, { method: "PUT", headers: { "content-type": contentType }, body });
   const text = await response.text();
   if (!response.ok) return { ok: false, message: `Walrus upload failed with ${response.status}: ${text}`, setupHint: "Check publisher availability, CORS, and Walrus testnet/mainnet config." };
   let data: WalrusStoreResponse;
@@ -20,15 +21,17 @@ export async function uploadToWalrus(body: Blob | string, contentType = "applica
 }
 
 export async function fetchWalrusBlob(blobId: string): Promise<{ ok: true; text: string } | { ok: false; message: string }> {
-  if (!env.walrusAggregatorUrl) return { ok: false, message: "Walrus aggregator URL is not configured. Set NEXT_PUBLIC_WALRUS_AGGREGATOR_URL to fetch manifests." };
-  const response = await fetch(`${normalizeBase(env.walrusAggregatorUrl)}/v1/blobs/${encodeURIComponent(blobId)}`);
+  const { walrusAggregatorUrl } = getActiveNetworkConfig();
+  if (!walrusAggregatorUrl) return { ok: false, message: "Walrus aggregator URL is not configured. Set NEXT_PUBLIC_WALRUS_AGGREGATOR_URL to fetch manifests." };
+  const response = await fetch(`${normalizeBase(walrusAggregatorUrl)}/v1/blobs/${encodeURIComponent(blobId)}`);
   const text = await response.text();
   return response.ok ? { ok: true, text } : { ok: false, message: `Walrus fetch failed with ${response.status}: ${text}` };
 }
 
 export async function fetchWalrusBlobRaw(blobId: string): Promise<{ ok: true; data: ArrayBuffer } | { ok: false; message: string }> {
-  if (!env.walrusAggregatorUrl) return { ok: false, message: "Walrus aggregator URL is not configured." };
-  const response = await fetch(`${normalizeBase(env.walrusAggregatorUrl)}/v1/blobs/${encodeURIComponent(blobId)}`);
+  const { walrusAggregatorUrl } = getActiveNetworkConfig();
+  if (!walrusAggregatorUrl) return { ok: false, message: "Walrus aggregator URL is not configured." };
+  const response = await fetch(`${normalizeBase(walrusAggregatorUrl)}/v1/blobs/${encodeURIComponent(blobId)}`);
   if (!response.ok) return { ok: false, message: `Walrus fetch failed with ${response.status}` };
   return { ok: true, data: await response.arrayBuffer() };
 }

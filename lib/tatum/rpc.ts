@@ -1,3 +1,4 @@
+import { getActiveNetworkConfig } from "@/lib/network";
 import { env } from "@/lib/env";
 
 export type JsonRpcResponse<T> = { jsonrpc: "2.0"; id: number; result?: T; error?: { code: number; message: string; data?: unknown } };
@@ -5,7 +6,7 @@ export type JsonRpcResponse<T> = { jsonrpc: "2.0"; id: number; result?: T; error
 export async function tatumRpc<T>(method: string, params: unknown[] = []): Promise<T> {
   const headers: Record<string, string> = { "content-type": "application/json" };
   if (env.tatumApiKey) headers["x-api-key"] = env.tatumApiKey;
-  const response = await fetch(env.tatumRpcUrl, { method: "POST", headers, body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }) });
+  const response = await fetch(getActiveNetworkConfig().tatumRpcUrl, { method: "POST", headers, body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }) });
   const payload = (await response.json()) as JsonRpcResponse<T>;
   if (!response.ok || payload.error || payload.result === undefined) throw new Error(payload.error?.message || `Tatum RPC request failed with ${response.status}`);
   return payload.result;

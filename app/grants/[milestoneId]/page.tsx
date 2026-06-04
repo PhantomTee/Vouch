@@ -8,6 +8,7 @@ import { GrantActions } from "@/components/GrantActions";
 import { SuiAddress } from "@/components/SuiAddress";
 import { getObject } from "@/lib/tatum/rpc";
 import { parseMilestoneFields } from "@/lib/grants/parseMilestone";
+import { useNetwork } from "@/lib/network";
 import type { GrantMilestone } from "@/types/grants";
 
 function InfoCard({ label, children }: { label: string; children: React.ReactNode }) {
@@ -24,6 +25,7 @@ export default function MilestonePage({ params }: { params: { milestoneId: strin
   const [milestone, setMilestone] = useState<GrantMilestone | null>(null);
   const [loading, setLoading] = useState(true);
   const [errMsg, setErrMsg] = useState("");
+  const { config } = useNetwork();
 
   async function load() {
     setLoading(true);
@@ -106,7 +108,7 @@ export default function MilestonePage({ params }: { params: { milestoneId: strin
           {/* SuiScan link */}
           <div className="mt-6">
             <a
-              href={`https://suiscan.xyz/testnet/object/${milestoneId}`}
+              href={`${config.suiscanBase}/object/${milestoneId}`}
               target="_blank" rel="noreferrer"
               className="btn-neo inline-flex items-center gap-1.5 bg-white px-3 py-2 text-xs text-ink"
             >

@@ -1,12 +1,12 @@
 import { Transaction } from "@mysten/sui/transactions";
-import { env } from "@/lib/env";
+import { getActiveNetworkConfig } from "@/lib/network";
 
 const SUI_CLOCK_OBJECT_ID = "0x6";
 
 function requireGrantsPackageId() {
-  if (!env.grantsPackageId)
-    throw new Error("NEXT_PUBLIC_GRANTS_PACKAGE_ID is not configured.");
-  return env.grantsPackageId;
+  const { grantsPackageId } = getActiveNetworkConfig();
+  if (!grantsPackageId) throw new Error("Grants package ID is not configured for this network.");
+  return grantsPackageId;
 }
 
 export function buildCreateMilestoneTx(args: {

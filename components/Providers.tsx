@@ -1,36 +1,54 @@
 "use client";
 
-import { createNetworkConfig, SuiClientProvider, WalletProvider } from "@mysten/dapp-kit";
+import { SuiClientProvider, WalletProvider } from "@mysten/dapp-kit";
 import { SuiClient, SuiHTTPTransport } from "@mysten/sui/client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { SessionProvider } from "next-auth/react";
-import { useState } from "react";
-import { env } from "@/lib/env";
+import { useEffect, useState } from "react";
+import { NetworkContext, NETWORK_CONFIGS, setActiveNetwork, type NetworkName } from "@/lib/network";
 
-const { networkConfig } = createNetworkConfig({
-  testnet: { url: env.tatumRpcUrl },
-  mainnet: { url: env.tatumRpcUrl }
-});
+const suiNetworks = {
+  testnet: { url: typeof window !== "undefined" ? "/api/rpc" : (process.env.NEXT_PUBLIC_TATUM_SUI_RPC_URL || "https://sui-testnet.gateway.tatum.io") },
+  mainnet: { url: typeof window !== "undefined" ? "/api/rpc-mainnet" : (process.env.NEXT_PUBLIC_TATUM_SUI_RPC_URL_MAINNET || "https://sui-mainnet.gateway.tatum.io") },
+};
 
 function createTatumSuiClient(url: string) {
-  // When url is /api/rpc (browser), no extra headers needed — proxy adds the API key server-side
   return new SuiClient({ transport: new SuiHTTPTransport({ url }) });
+}
+
+function readStoredNetwork(): NetworkName {
+  if (typeof window === "undefined") return "testnet";
+  const stored = localStorage.getItem("vouch.network");
+  return stored === "mainnet" ? "mainnet" : "testnet";
 }
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(() => new QueryClient());
-  const network = env.suiNetwork === "mainnet" ? "mainnet" : "testnet";
+  const [network, setNetworkState] = useState<NetworkName>(readStoredNetwork);
+
+  useEffect(() => {
+    setActiveNetwork(network);
+    localStorage.setItem("vouch.network", network);
+  }, [network]);
+
+  function setNetwork(n: NetworkName) {
+    setActiveNetwork(n);
+    setNetworkState(n);
+    localStorage.setItem("vouch.network", n);
+  }
 
   return (
     <SessionProvider>
       <QueryClientProvider client={queryClient}>
-        <SuiClientProvider
-          networks={networkConfig}
-          defaultNetwork={network}
-          createClient={(_network, config) => createTatumSuiClient(config.url)}
-        >
-          <WalletProvider autoConnect>{children}</WalletProvider>
-        </SuiClientProvider>
+        <NetworkContext.Provider value={{ network, config: NETWORK_CONFIGS[network], setNetwork }}>
+          <SuiClientProvider
+            networks={suiNetworks}
+            network={network}
+            createClient={(_n, config) => createTatumSuiClient(config.url)}
+          >
+            <WalletProvider autoConnect>{children}</WalletProvider>
+          </SuiClientProvider>
+        </NetworkContext.Provider>
       </QueryClientProvider>
     </SessionProvider>
   );

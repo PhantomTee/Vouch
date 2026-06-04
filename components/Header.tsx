@@ -4,6 +4,7 @@ import { signIn, signOut, useSession } from "next-auth/react";
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
 import { WalletButton } from "@/components/WalletButton";
+import { useNetwork } from "@/lib/network";
 
 const navLinks: { href: string; label: string; external?: boolean }[] = [
   { href: "/create", label: "Create" },
@@ -16,6 +17,7 @@ const navLinks: { href: string; label: string; external?: boolean }[] = [
 export function Header() {
   const [open, setOpen] = useState(false);
   const { data: session } = useSession();
+  const { network, setNetwork } = useNetwork();
 
   return (
     <header className="sticky top-0 z-40 border-b-4 border-ink bg-[#87CEEB]">
@@ -36,6 +38,14 @@ export function Header() {
         </nav>
 
         <div className="flex shrink-0 items-center gap-2">
+          <button
+            onClick={() => setNetwork(network === "testnet" ? "mainnet" : "testnet")}
+            className={`hidden items-center rounded-xl border-2 border-ink px-3 py-1.5 font-mono text-[10px] font-bold uppercase tracking-widest md:flex ${
+              network === "mainnet" ? "bg-brand-green/20 text-ink" : "bg-white text-ink/50"
+            }`}
+          >
+            {network}
+          </button>
           {/* GitHub identity */}
           {session?.user ? (
             <button
@@ -107,6 +117,16 @@ export function Header() {
                 >{l.label}</Link>
               )
             )}
+
+            {/* Network toggle */}
+            <button
+              onClick={() => { setNetwork(network === "testnet" ? "mainnet" : "testnet"); setOpen(false); }}
+              className={`mt-4 w-full rounded-2xl border-2 border-ink px-4 py-3 font-mono text-sm font-bold uppercase tracking-widest ${
+                network === "mainnet" ? "bg-brand-green/20 text-ink" : "bg-white text-ink/50"
+              }`}
+            >
+              {network === "testnet" ? "Switch to Mainnet" : "Switch to Testnet"}
+            </button>
 
             {/* GitHub identity */}
             <div className="mt-auto pb-8 pt-6">
