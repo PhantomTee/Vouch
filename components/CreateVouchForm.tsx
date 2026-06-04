@@ -16,7 +16,7 @@ import { encryptForOwner } from "@/lib/seal/client";
 import { buildCreateProjectTx } from "@/lib/sui/transactions";
 import { uploadToWalrus } from "@/lib/walrus/client";
 import type { CreateVouchInput, EvidenceManifestItem, StoredProof } from "@/types/vouch";
-import { useNetwork } from "@/lib/network";
+import { useNetwork } from "@/lib/networkContext";
 
 const MAX_FILES = 5;
 const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024;

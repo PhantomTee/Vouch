@@ -1,6 +1,6 @@
 "use client";
 
-import { useNetwork, type NetworkName } from "@/lib/network";
+import { useNetwork, type NetworkName } from "@/lib/networkContext";
 
 export function NetworkToggle() {
   const { network, setNetwork } = useNetwork();

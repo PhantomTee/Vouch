@@ -5,7 +5,7 @@ import { useState } from "react";
 import { Menu, X } from "lucide-react";
 import { WalletButton } from "@/components/WalletButton";
 import { NetworkToggle } from "@/components/NetworkToggle";
-import { useNetwork } from "@/lib/network";
+import { useNetwork } from "@/lib/networkContext";
 
 const navLinks: { href: string; label: string; external?: boolean }[] = [
   { href: "/create", label: "Create" },

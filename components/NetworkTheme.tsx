@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { useNetwork } from "@/lib/network";
+import { useNetwork } from "@/lib/networkContext";
 
 export function NetworkTheme() {
   const { network } = useNetwork();

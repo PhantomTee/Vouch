@@ -7,7 +7,7 @@ import { MilestoneCard } from "@/components/MilestoneCard";
 import { MilestoneStatusBadge } from "@/components/MilestoneStatusBadge";
 import { queryMilestoneEvents, getObject } from "@/lib/tatum/rpc";
 import { parseMilestoneFields } from "@/lib/grants/parseMilestone";
-import { useNetwork } from "@/lib/network";
+import { useNetwork } from "@/lib/networkContext";
 import type { GrantMilestone, MilestoneStatus } from "@/types/grants";
 
 const STATUS_FILTERS: { label: string; value: MilestoneStatus | "all" }[] = [

@@ -5,7 +5,8 @@ import { SuiClient, SuiHTTPTransport } from "@mysten/sui/client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { SessionProvider } from "next-auth/react";
 import { useEffect, useState } from "react";
-import { NetworkContext, NETWORK_CONFIGS, setActiveNetwork, type NetworkName } from "@/lib/network";
+import { NETWORK_CONFIGS, setActiveNetwork, type NetworkName } from "@/lib/network";
+import { NetworkContext } from "@/lib/networkContext";
 import { toast } from "sonner";
 
 const suiNetworks = {

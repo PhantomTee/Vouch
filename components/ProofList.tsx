@@ -5,7 +5,7 @@ import Link from "next/link";
 const CATEGORIES = ["All", "DeFi", "Gaming", "Infrastructure", "Tooling", "Social", "Public goods", "Other"];
 import type { StoredProof } from "@/types/vouch";
 import { queryCreatedEvents } from "@/lib/tatum/rpc";
-import { useNetwork } from "@/lib/network";
+import { useNetwork } from "@/lib/networkContext";
 import { NetworkBadge } from "@/components/NetworkBadge";
 
 type EventsResult = {

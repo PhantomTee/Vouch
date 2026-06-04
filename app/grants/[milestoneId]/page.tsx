@@ -8,7 +8,7 @@ import { GrantActions } from "@/components/GrantActions";
 import { SuiAddress } from "@/components/SuiAddress";
 import { getObject } from "@/lib/tatum/rpc";
 import { parseMilestoneFields } from "@/lib/grants/parseMilestone";
-import { useNetwork } from "@/lib/network";
+import { useNetwork } from "@/lib/networkContext";
 import type { GrantMilestone } from "@/types/grants";
 
 function InfoCard({ label, children }: { label: string; children: React.ReactNode }) {
@@ -41,6 +41,7 @@ export default function MilestonePage({ params }: { params: { milestoneId: strin
     }
   }
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { load(); }, [milestoneId]);
 
   if (loading) return (

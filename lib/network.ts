@@ -1,5 +1,3 @@
-import { createContext, useContext } from "react";
-
 export type NetworkName = "testnet" | "mainnet";
 
 export type NetworkConfig = {
@@ -44,17 +42,3 @@ export const NETWORK_CONFIGS: Record<NetworkName, NetworkConfig> = {
 let _active: NetworkName = "testnet";
 export function setActiveNetwork(n: NetworkName) { _active = n; }
 export function getActiveNetworkConfig(): NetworkConfig { return NETWORK_CONFIGS[_active]; }
-
-export type NetworkContextValue = {
-  network: NetworkName;
-  config: NetworkConfig;
-  setNetwork: (n: NetworkName) => void;
-};
-
-export const NetworkContext = createContext<NetworkContextValue>({
-  network: "testnet",
-  config: NETWORK_CONFIGS.testnet,
-  setNetwork: () => {},
-});
-
-export function useNetwork() { return useContext(NetworkContext); }
