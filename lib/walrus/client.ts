@@ -25,3 +25,10 @@ export async function fetchWalrusBlob(blobId: string): Promise<{ ok: true; text:
   const text = await response.text();
   return response.ok ? { ok: true, text } : { ok: false, message: `Walrus fetch failed with ${response.status}: ${text}` };
 }
+
+export async function fetchWalrusBlobRaw(blobId: string): Promise<{ ok: true; data: ArrayBuffer } | { ok: false; message: string }> {
+  if (!env.walrusAggregatorUrl) return { ok: false, message: "Walrus aggregator URL is not configured." };
+  const response = await fetch(`${normalizeBase(env.walrusAggregatorUrl)}/v1/blobs/${encodeURIComponent(blobId)}`);
+  if (!response.ok) return { ok: false, message: `Walrus fetch failed with ${response.status}` };
+  return { ok: true, data: await response.arrayBuffer() };
+}

@@ -10,7 +10,19 @@ const spaceMono = Space_Mono({ weight: ["400", "700"], subsets: ["latin"], varia
 
 export const metadata: Metadata = {
   title: "Vouch | Proof-of-build registry for Sui",
-  description: "Vouch stores project evidence on Walrus, anchors proof hashes on Sui, and uses Tatum RPC for verification."
+  description: "Anchor your project evidence on Walrus and Sui. Every build, verifiable forever.",
+  openGraph: {
+    title: "Vouch — Proof-of-build registry for Sui",
+    description: "Anchor your project evidence on Walrus and Sui. Every build, verifiable forever.",
+    url: "https://vouch-proof.vercel.app",
+    siteName: "Vouch",
+    type: "website",
+  },
+  twitter: {
+    card: "summary",
+    title: "Vouch — Proof-of-build registry for Sui",
+    description: "Anchor your project evidence on Walrus and Sui. Every build, verifiable forever.",
+  },
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

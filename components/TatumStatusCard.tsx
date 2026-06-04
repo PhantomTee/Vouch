@@ -13,8 +13,8 @@ export function TatumStatusCard() {
         <span className={`h-3 w-3 flex-shrink-0 rounded-full border-2 border-ink ${status?.ok ? "bg-brand-green" : "bg-gold"}`} />
         <h3 className="font-mono text-sm font-bold uppercase tracking-widest text-ink">Tatum RPC</h3>
       </div>
-      <p className="mt-4 font-mono text-sm text-ink/70">{status?.label ?? "Checking Tatum Sui RPC..."}</p>
-      <p className="mt-2 break-all font-mono text-xs text-ink/40">{status?.detail ?? "Lightweight sui_getProtocolConfig call"}</p>
+      <p className="mt-4 font-mono text-sm text-ink/70">{status?.label ?? "Checking connection..."}</p>
+      {status?.ok && <p className="mt-2 break-all font-mono text-xs text-ink/40">{status.detail}</p>}
     </div>
   );
 }

@@ -3,6 +3,7 @@
 import { createNetworkConfig, SuiClientProvider, WalletProvider } from "@mysten/dapp-kit";
 import { SuiClient, SuiHTTPTransport } from "@mysten/sui/client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { SessionProvider } from "next-auth/react";
 import { useState } from "react";
 import { env } from "@/lib/env";
 
@@ -21,14 +22,16 @@ export function Providers({ children }: { children: React.ReactNode }) {
   const network = env.suiNetwork === "mainnet" ? "mainnet" : "testnet";
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <SuiClientProvider
-        networks={networkConfig}
-        defaultNetwork={network}
-        createClient={(_network, config) => createTatumSuiClient(config.url)}
-      >
-        <WalletProvider autoConnect>{children}</WalletProvider>
-      </SuiClientProvider>
-    </QueryClientProvider>
+    <SessionProvider>
+      <QueryClientProvider client={queryClient}>
+        <SuiClientProvider
+          networks={networkConfig}
+          defaultNetwork={network}
+          createClient={(_network, config) => createTatumSuiClient(config.url)}
+        >
+          <WalletProvider autoConnect>{children}</WalletProvider>
+        </SuiClientProvider>
+      </QueryClientProvider>
+    </SessionProvider>
   );
 }

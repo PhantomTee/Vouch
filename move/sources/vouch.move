@@ -6,8 +6,10 @@ use sui::object::{Self, ID, UID};
 use sui::tx_context::{Self, TxContext};
 use sui::transfer;
 use std::string::String;
+use std::bcs;
 
 const E_NOT_OWNER: u64 = 1;
+const E_SEAL_FORBIDDEN: u64 = 2;
 
 public struct VouchProject has key, store {
     id: UID,
@@ -120,4 +122,17 @@ public entry fun deactivate_project(project: &mut VouchProject, ctx: &mut TxCont
     let sender = tx_context::sender(ctx);
     assert!(project.owner == sender, E_NOT_OWNER);
     project.active = false;
+}
+
+/// Seal key servers call this (via dry-run) to authorize decryption.
+/// id = ownerAddress (32 bytes) ++ random nonce — only the original owner can decrypt.
+public entry fun seal_approve(id: vector<u8>, ctx: &TxContext) {
+    let caller_bytes = bcs::to_bytes(&tx_context::sender(ctx));
+    let n = vector::length(&caller_bytes);
+    assert!(vector::length(&id) >= n, E_SEAL_FORBIDDEN);
+    let mut i = 0;
+    while (i < n) {
+        assert!(*vector::borrow(&id, i) == *vector::borrow(&caller_bytes, i), E_SEAL_FORBIDDEN);
+        i = i + 1;
+    };
 }

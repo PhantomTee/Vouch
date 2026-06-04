@@ -152,3 +152,23 @@ Private evidence files are encrypted using Sui Seal before upload. The encryptio
 The Seal key server used: `0xb012378c9f3799fb5b1a7083da74a4069e3c3f1c93de0b27212a5799ce1e1e98`
 
 Docs: [seal-docs.wal.app](https://seal-docs.wal.app)
+
+---
+
+## What Vouch proves and does not prove
+
+**Vouch proves:**
+- The wallet that signed the anchoring transaction
+- The GitHub account linked to the proof at submission time
+- The exact timestamp of the Sui transaction
+- The Walrus blob ID where the evidence manifest is stored
+- The SHA-256 hash of every evidence file at upload time
+- That none of the above has been altered since anchoring
+
+**Vouch does not claim:**
+- That every line of code was written during a specific time window
+- That the project works as described
+- That private off-chain work was included unless evidence was uploaded
+- That the GitHub account represents the sole contributor
+
+Vouch is a notary, not a judge. It proves what evidence existed, when it was anchored, and who anchored it.

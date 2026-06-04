@@ -1,12 +1,15 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, Twitter } from "lucide-react";
 import { CopyButton } from "@/components/CopyButton";
 import { EvidenceTable } from "@/components/EvidenceTable";
 import { VerificationBadge } from "@/components/VerificationBadge";
 import { ProofTimeline } from "@/components/ProofTimeline";
 import { CartoonMascot } from "@/components/CartoonMascot";
+import { UpdateProofForm } from "@/components/UpdateProofForm";
+import { SuiAddress } from "@/components/SuiAddress";
+import { ProofScore } from "@/components/ProofScore";
 import { fetchWalrusBlob } from "@/lib/walrus/client";
 import { getObject } from "@/lib/tatum/rpc";
 import type { StoredProof, VouchManifest } from "@/types/vouch";
@@ -34,7 +37,7 @@ function fieldString(fields: Record<string, unknown> | undefined, key: string): 
 export function ProofViewer({ objectId }: { objectId: string }) {
   const [proof, setProof] = useState<StoredProof | null>(null);
   const [chain, setChain] = useState<ObjectResponse | null>(null);
-  const [message, setMessage] = useState("Loading local cache and Sui object through Tatum RPC...");
+  const [message, setMessage] = useState("Loading proof…");
   const [manifestText, setManifestText] = useState("");
   const proofUrl = useMemo(
     () => (typeof window === "undefined" ? `/vouch/${objectId}` : window.location.href),
@@ -57,6 +60,8 @@ export function ProofViewer({ objectId }: { objectId: string }) {
               setManifestText(fetched.text);
               try {
                 const manifest = JSON.parse(fetched.text) as VouchManifest;
+                const msToIso = (ms: unknown) =>
+                  ms ? new Date(Number(ms)).toISOString() : "";
                 setProof({
                   objectId,
                   txDigest: object.data?.previousTransaction,
@@ -66,7 +71,8 @@ export function ProofViewer({ objectId }: { objectId: string }) {
                   title: fieldString(fields, "title"),
                   tagline: fieldString(fields, "tagline"),
                   category: fieldString(fields, "category"),
-                  createdAt: String(fields?.created_at_ms || ""),
+                  createdAt: msToIso(fields?.created_at_ms),
+                  updatedAt: msToIso(fields?.updated_at_ms),
                   version: Number(fields?.latest_version || 1),
                   manifest,
                 });
@@ -74,7 +80,7 @@ export function ProofViewer({ objectId }: { objectId: string }) {
             } else { setMessage(fetched.message); }
           });
         }
-        setMessage("Sui object loaded through Tatum RPC.");
+        setMessage("");
       })
       .catch((e) => setMessage(`Tatum RPC read failed: ${e instanceof Error ? e.message : "Unknown error"}`));
   }, [objectId]);
@@ -99,7 +105,12 @@ export function ProofViewer({ objectId }: { objectId: string }) {
           <p className="mt-3 font-mono text-sm text-ink/70 sm:text-base">{proof?.tagline || fieldString(fields, "tagline")}</p>
 
           <div className="mt-6 grid gap-3 sm:mt-8 sm:gap-4 md:grid-cols-2">
-            <Info label="Owner wallet" value={owner} />
+            <div className="card-neo min-w-0 p-3 sm:p-4">
+              <p className="font-mono text-xs font-bold uppercase tracking-widest text-ink/50">Owner wallet</p>
+              <p className="mt-2 break-all font-mono text-xs text-ink sm:text-sm">
+                {owner ? <SuiAddress address={owner} /> : "Pending"}
+              </p>
+            </div>
             <Info label="Sui object ID" value={objectId} />
             <Info label="Transaction digest" value={digest || "Unavailable"} />
             <Info label="Walrus manifest blob ID" value={manifestBlobId} />
@@ -109,6 +120,14 @@ export function ProofViewer({ objectId }: { objectId: string }) {
 
           <div className="mt-8 flex flex-wrap gap-3">
             <CopyButton text={proofUrl} label="Copy proof link" />
+            <a
+              href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`Just anchored proof of "${title}" on Sui — verified forever on-chain with @VouchProof`)}&url=${encodeURIComponent(proofUrl)}`}
+              target="_blank"
+              rel="noreferrer"
+              className="btn-neo flex items-center gap-1.5 bg-white px-3 py-2 text-xs text-ink"
+            >
+              <Twitter size={12} /> Share on X
+            </a>
             {manifestText ? (
               <button
                 className="btn-neo bg-white px-3 py-2 text-xs text-ink"
@@ -129,6 +148,12 @@ export function ProofViewer({ objectId }: { objectId: string }) {
             >
               SuiScan <ExternalLink size={12} />
             </a>
+            <Link
+              href={`/verify?id=${objectId}`}
+              className="btn-neo bg-white px-3 py-2 text-xs text-ink"
+            >
+              Verify independently
+            </Link>
             <a
               className="btn-neo bg-white px-3 py-2 text-xs text-ink"
               href={`https://testnet.suivision.xyz/object/${objectId}`}
@@ -151,13 +176,16 @@ export function ProofViewer({ objectId }: { objectId: string }) {
               <Link className="btn-neo bg-gold px-4 py-2 text-xs text-ink" href={proof.manifest.links.demo}>Demo</Link>
             ) : null}
           </div>
+
+          {proof && <UpdateProofForm proof={proof} />}
         </section>
 
         <aside className="space-y-5">
           <div className="card-neo flex items-center justify-center p-8" style={{ backgroundColor: "#87CEEB" }}>
             <CartoonMascot className="w-36 animate-float" />
           </div>
-          <ProofTimeline createdAt={proof?.createdAt} version={proof?.version} />
+          <ProofTimeline createdAt={proof?.createdAt} updatedAt={proof?.updatedAt} version={proof?.version} />
+          {proof && <ProofScore proof={proof} chainVerified={!!chain} />}
         </aside>
       </div>
     </main>

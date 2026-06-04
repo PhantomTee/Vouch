@@ -3,13 +3,16 @@
 import { useCurrentAccount, useSignAndExecuteTransaction, useSuiClient } from "@mysten/dapp-kit";
 import type { SuiTransactionBlockResponse } from "@mysten/sui/client";
 import { AlertTriangle, CheckCircle2 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { signIn, useSession } from "next-auth/react";
+import { useMemo, useState, useEffect } from "react";
 import { z } from "zod";
 import { FileDropzone } from "@/components/FileDropzone";
+import { GitHubImportButton, type ImportedRepoData } from "@/components/GitHubImportButton";
 import { StepProgress } from "@/components/StepProgress";
 import { CartoonMascot } from "@/components/CartoonMascot";
 import { sha256File, sha256String } from "@/lib/hash/sha256";
 import { createManifest } from "@/lib/manifest/createManifest";
+import { encryptForOwner } from "@/lib/seal/client";
 import { buildCreateProjectTx } from "@/lib/sui/transactions";
 import { uploadToWalrus } from "@/lib/walrus/client";
 import type { CreateVouchInput, EvidenceManifestItem, StoredProof } from "@/types/vouch";
@@ -54,6 +57,7 @@ const inputClass = "w-full rounded-xl border-2 border-ink bg-white px-4 py-3 fon
 export function CreateVouchForm() {
   const account = useCurrentAccount();
   const suiClient = useSuiClient();
+  const { data: session } = useSession();
   const { mutateAsync: signAndExecuteTransaction } = useSignAndExecuteTransaction({
     execute: async ({ bytes, signature }) =>
       suiClient.executeTransactionBlock({
@@ -65,7 +69,35 @@ export function CreateVouchForm() {
 
   const [input, setInput] = useState<CreateVouchInput>(emptyInput);
   const [files, setFiles] = useState<File[]>([]);
+  const [sealedSet, setSealedSet] = useState<Set<number>>(new Set());
   const [step, setStep] = useState(0);
+
+  useEffect(() => {
+    if (!session?.user) return;
+    setInput((prev) => ({
+      ...prev,
+      displayName: prev.displayName || session.user.name || session.user.login || "",
+      xUrl: prev.xUrl || "",
+    }));
+  }, [session]);
+
+  function handleImport(data: ImportedRepoData) {
+    setInput((prev) => ({
+      ...prev,
+      name: data.name || prev.name,
+      tagline: data.tagline || prev.tagline,
+      category: data.category || prev.category,
+      description: data.description || prev.description,
+      repoUrl: data.repoUrl || prev.repoUrl,
+      demoUrl: data.demoUrl || prev.demoUrl,
+    }));
+    if (data.readmeFile) {
+      setFiles((prev) => {
+        if (prev.some((f) => f.name === "README.md")) return prev;
+        return [data.readmeFile!, ...prev].slice(0, 5);
+      });
+    }
+  }
   const [error, setError] = useState("");
   const [manifestJson, setManifestJson] = useState("");
   const [doneUrl, setDoneUrl] = useState("");
@@ -75,6 +107,7 @@ export function CreateVouchForm() {
   async function submit() {
     setError(""); setDoneUrl(""); setManifestJson("");
     try {
+      if (!session?.user?.login) throw new Error("Sign in with GitHub before creating a Vouch — this verifies you own the GitHub account you're linking.");
       if (!account?.address) throw new Error("Connect a Sui wallet before creating a Vouch.");
       const parsed = formSchema.parse(input);
       if (files.length < 1) throw new Error("Add at least one evidence file.");
@@ -82,15 +115,28 @@ export function CreateVouchForm() {
       const tooLarge = files.find((file) => file.size > MAX_FILE_SIZE_BYTES);
       if (tooLarge) throw new Error(`${tooLarge.name} is larger than 5MB.`);
 
+      setStep(0);
       setStep(1);
       const hashedFiles = await Promise.all(files.map(async (file) => ({ file, sha256: await sha256File(file) })));
 
       setStep(2);
       const evidence: EvidenceManifestItem[] = [];
-      for (const item of hashedFiles) {
-        const uploaded = await uploadToWalrus(item.file, item.file.type || "application/octet-stream");
+      for (let i = 0; i < hashedFiles.length; i++) {
+        const item = hashedFiles[i];
+        const isSealed = sealedSet.has(i);
+        let uploadBlob: Blob;
+        let sealId: string | undefined;
+        if (isSealed) {
+          const fileData = new Uint8Array(await item.file.arrayBuffer());
+          const encrypted = await encryptForOwner(suiClient as Parameters<typeof encryptForOwner>[0], fileData, account.address);
+          uploadBlob = new Blob([encrypted.encryptedBytes.slice()], { type: "application/octet-stream" });
+          sealId = encrypted.sealId;
+        } else {
+          uploadBlob = item.file;
+        }
+        const uploaded = await uploadToWalrus(uploadBlob, isSealed ? "application/octet-stream" : (item.file.type || "application/octet-stream"));
         if (!uploaded.ok) throw new Error(`${uploaded.message} ${uploaded.setupHint}`);
-        evidence.push({ type: item.file.type || "file", name: item.file.name, mimeType: item.file.type || "application/octet-stream", size: item.file.size, walrusBlobId: uploaded.blobId, sha256: item.sha256 });
+        evidence.push({ type: item.file.type || "file", name: item.file.name, mimeType: item.file.type || "application/octet-stream", size: item.file.size, walrusBlobId: uploaded.blobId, sha256: item.sha256, sealed: isSealed || undefined, sealId });
       }
 
       setStep(3);
@@ -126,9 +172,19 @@ export function CreateVouchForm() {
     }
   }
 
+  const urlFields = new Set(["repoUrl", "demoUrl", "suiUrl", "xUrl", "linkedinUrl"]);
+
+  function handleFieldBlur(key: keyof CreateVouchInput, value: string) {
+    if (!urlFields.has(key) || !value) return;
+    if (!value.startsWith("http://") && !value.startsWith("https://")) {
+      setInput((prev) => ({ ...prev, [key]: `https://${value}` }));
+    }
+  }
+
   return (
     <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
       <section className="card-neo min-w-0 p-4 sm:p-6">
+        <GitHubImportButton onImport={handleImport} />
         <div className="grid gap-4 sm:grid-cols-2">
           {([
             ["name", "Project name"],
@@ -145,6 +201,8 @@ export function CreateVouchForm() {
               <input
                 value={String(input[key] || "")}
                 onChange={(e) => setInput({ ...input, [key]: e.target.value })}
+                onBlur={(e) => handleFieldBlur(key, e.target.value)}
+                placeholder={urlFields.has(key) && key !== "name" && key !== "tagline" && key !== "displayName" ? "https://" : undefined}
                 className={inputClass}
               />
             </label>
@@ -174,8 +232,51 @@ export function CreateVouchForm() {
         </div>
 
         <div className="mt-6">
-          <FileDropzone files={files} onFiles={setFiles} />
+          <FileDropzone
+            files={files}
+            onFiles={(next) => {
+              setFiles(next);
+              setSealedSet((prev) => {
+                const updated = new Set<number>();
+                for (const idx of prev) { if (idx < next.length) updated.add(idx); }
+                return updated;
+              });
+            }}
+            sealedSet={sealedSet}
+            onToggleSeal={(i) => setSealedSet((prev) => {
+              const next = new Set(prev);
+              next.has(i) ? next.delete(i) : next.add(i);
+              return next;
+            })}
+          />
         </div>
+
+        {!session?.user && (
+          <div className="mt-5 card-neo border-gold bg-gold/20 p-4">
+            <p className="font-mono text-sm font-bold text-ink">GitHub sign-in required</p>
+            <p className="mt-1 font-mono text-xs text-ink/70">Sign in with GitHub to prove you own the account you&apos;re linking. This prevents impersonation.</p>
+            <button
+              type="button"
+              onClick={() => signIn("github")}
+              className="btn-neo mt-3 bg-ink px-4 py-2 text-xs text-white"
+            >
+              Sign in with GitHub
+            </button>
+          </div>
+        )}
+
+        {session?.user && (
+          <div className="mt-5 flex items-center gap-3 rounded-xl border-2 border-brand-green bg-brand-green/10 px-4 py-3">
+            {session.user.image && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={session.user.image} alt="" className="h-8 w-8 rounded-full border-2 border-ink" />
+            )}
+            <div>
+              <p className="font-mono text-xs font-bold text-ink">✓ GitHub verified</p>
+              <p className="font-mono text-xs text-ink/60">@{session.user.login}</p>
+            </div>
+          </div>
+        )}
 
         {error ? (
           <div className="mt-5 card-neo border-coral bg-red-50 p-4 shadow-[4px_4px_0_#FF6B5B]">

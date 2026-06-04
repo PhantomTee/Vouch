@@ -24,16 +24,25 @@ export function AnimatedHeading() {
     return () => clearInterval(id);
   }, []);
 
+  const cls = "font-display text-[2.6rem] leading-none tracking-tight text-ink sm:text-[3.5rem] md:text-[5rem] lg:text-[6.5rem] xl:text-[7.5rem]";
+
   return (
-    <h1
-      className="font-display text-[2.6rem] leading-none tracking-tight text-ink sm:text-[3.5rem] md:text-[5rem] lg:text-[6.5rem] xl:text-[7.5rem]"
-      style={{
-        transition: "opacity 0.35s ease, transform 0.35s ease",
-        opacity: visible ? 1 : 0,
-        transform: visible ? "translateY(0px)" : "translateY(-12px)",
-      }}
-    >
-      {phrases[index]}
-    </h1>
+    <div className="relative">
+      {/* Invisible spacer — always occupies the height of the longest phrase so layout never shifts */}
+      <h1 className={`${cls} invisible select-none`} aria-hidden>
+        PROOF YOUR BUILD HAPPENED.
+      </h1>
+      {/* Animated visible text overlaid on top */}
+      <h1
+        className={`${cls} absolute inset-0`}
+        style={{
+          transition: "opacity 0.35s ease, transform 0.35s ease",
+          opacity: visible ? 1 : 0,
+          transform: visible ? "translateY(0px)" : "translateY(-12px)",
+        }}
+      >
+        {phrases[index]}
+      </h1>
+    </div>
   );
 }

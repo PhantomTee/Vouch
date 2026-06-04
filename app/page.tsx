@@ -1,7 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Database, Fingerprint, ShieldCheck } from "lucide-react";
-import { TatumStatusCard } from "@/components/TatumStatusCard";
-import { WalrusStorageCard } from "@/components/WalrusStorageCard";
+import { ArrowRight } from "lucide-react";
 import { CartoonMascot } from "@/components/CartoonMascot";
 import { AnimatedHeading } from "@/components/AnimatedHeading";
 
@@ -16,19 +14,16 @@ const tickerItems = [
 
 const features = [
   {
-    icon: Database,
     title: "EVIDENCE ON WALRUS",
     text: "Upload screenshots, READMEs, PDFs, and demo proof as content-addressed builder evidence.",
     bg: "#F5C842",
   },
   {
-    icon: Fingerprint,
     title: "HASHES ON SUI",
     text: "Each manifest and file gets a SHA-256 fingerprint before the project proof is anchored on-chain.",
     bg: "#FFFFFF",
   },
   {
-    icon: ShieldCheck,
     title: "TATUM RPC VERIFIED",
     text: "Public proof pages read Sui state through a Tatum Sui JSON-RPC gateway — no middleman.",
     bg: "#87CEEB",
@@ -41,12 +36,9 @@ export default function Home() {
       {/* Hero */}
       <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:py-24">
         <div className="grid items-center gap-8 lg:grid-cols-2 lg:gap-12">
-          {/* Mascot — top on mobile, right on desktop */}
           <div className="flex justify-center lg:order-2 lg:justify-end">
             <CartoonMascot className="w-40 animate-float drop-shadow-xl sm:w-52 lg:w-72" />
           </div>
-
-          {/* Text — below mascot on mobile, left on desktop */}
           <div className="animate-slide-up lg:order-1">
             <AnimatedHeading />
             <p className="mt-5 max-w-lg font-mono text-sm leading-relaxed text-ink/70 sm:text-base">
@@ -85,20 +77,10 @@ export default function Home() {
               className="card-neo p-6 transition-transform hover:-translate-y-1 sm:p-8"
               style={{ backgroundColor: f.bg }}
             >
-              <f.icon size={36} className="mb-5 text-ink" />
               <h3 className="font-display text-2xl text-ink sm:text-3xl">{f.title}</h3>
               <p className="mt-3 font-mono text-sm leading-relaxed text-ink/65">{f.text}</p>
             </article>
           ))}
-        </div>
-      </section>
-
-      {/* Live status */}
-      <section className="mx-auto max-w-7xl px-4 pb-16 sm:px-6 sm:pb-24">
-        <h2 className="mb-6 font-display text-3xl text-ink sm:mb-8 sm:text-4xl">LIVE STATUS.</h2>
-        <div className="grid gap-5 sm:grid-cols-2">
-          <TatumStatusCard />
-          <WalrusStorageCard />
         </div>
       </section>
     </main>

@@ -10,9 +10,8 @@ export function WalrusStorageCard() {
         <h3 className="font-mono text-sm font-bold uppercase tracking-widest text-ink">Walrus Storage</h3>
       </div>
       <p className="mt-4 font-mono text-sm text-ink/70">
-        {ready ? "Publisher and aggregator configured" : "Configure Walrus endpoints"}
+        {ready ? "Decentralised storage ready" : "Storage not configured"}
       </p>
-      <p className="mt-2 font-mono text-xs text-ink/40">Uploads fail loudly until real Walrus URLs are set.</p>
     </div>
   );
 }
