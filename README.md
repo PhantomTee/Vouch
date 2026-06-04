@@ -168,28 +168,6 @@ npm run build
 
 ---
 
-## Environment variables
-
-The contract addresses below point to the live deployed contracts on Sui Testnet and are pre-filled in `.env.example`. You only need to supply your own Tatum API key, GitHub OAuth credentials, and NextAuth secret.
-
-```env
-NEXT_PUBLIC_APP_NAME=Vouch
-NEXT_PUBLIC_SUI_NETWORK=testnet
-NEXT_PUBLIC_TATUM_SUI_RPC_URL=https://sui-testnet.gateway.tatum.io
-NEXT_PUBLIC_TATUM_API_KEY=your_tatum_key
-NEXT_PUBLIC_PACKAGE_ID=0x900febc5ddfd0ff86b07c765ebfefce0d0b9fda1ef26f72dfb8e3a17d4340b30
-NEXT_PUBLIC_GRANTS_PACKAGE_ID=0x43bfb194938bd12abf1f51a0155f05d90150f2d8b3ff2cece1094663cef19dd7
-NEXT_PUBLIC_WALRUS_PUBLISHER_URL=https://publisher.walrus-testnet.walrus.space
-NEXT_PUBLIC_WALRUS_AGGREGATOR_URL=https://aggregator.walrus-testnet.walrus.space
-GITHUB_CLIENT_ID=your_github_client_id
-GITHUB_CLIENT_SECRET=your_github_client_secret
-NEXTAUTH_SECRET=your_nextauth_secret
-NEXTAUTH_URL=https://your-deployment-url.vercel.app
-```
-
-The Tatum API key is available at [tatum.io](https://tatum.io) after creating a free account. GitHub OAuth credentials come from a [GitHub OAuth App](https://github.com/settings/developers).
-
----
 
 ## Walrus endpoints
 
@@ -213,8 +191,6 @@ Docs: [docs.tatum.io/reference/rpc-sui](https://docs.tatum.io/reference/rpc-sui)
 ## Sui Seal
 
 Private evidence files are encrypted using Sui Seal before upload. The encryption ID is derived from the owner's wallet address, creating an owner-only access policy enforced by the `seal_approve` entry function in the Move contract.
-
-The Seal key server used: `0xb012378c9f3799fb5b1a7083da74a4069e3c3f1c93de0b27212a5799ce1e1e98`
 
 Docs: [seal-docs.wal.app](https://seal-docs.wal.app)
 
