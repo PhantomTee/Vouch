@@ -6,6 +6,22 @@ Live: [vouch-proof.vercel.app](https://vouch-proof.vercel.app)
 
 ---
 
+## Judge quick test
+
+To verify a real proof end-to-end in under two minutes:
+
+1. Open [vouch-proof.vercel.app/verify](https://vouch-proof.vercel.app/verify)
+2. Paste the Vouch demo proof object ID:
+   ```
+   [paste object ID here after creating demo proof]
+   ```
+3. Click **Verify proof**
+4. Watch all 8 checks run: Sui object existence, timestamp, Walrus blob fetch, manifest hash match, per-file SHA-256 verification, GitHub identity, wallet ownership, and RPC source
+
+All checks are performed live against Tatum Sui RPC and Walrus aggregator endpoints. No Vouch backend is involved in any check beyond the serverless RPC proxy.
+
+---
+
 ## What it does
 
 Builders submit projects to hackathons and grant programs using links that can be edited or deleted after the deadline. Git history can be rewritten. Screenshots can be staged. Vouch fixes this.
@@ -23,11 +39,11 @@ The resulting Sui object has an immutable blockchain timestamp. Anyone can indep
 
 ## Features
 
-- **GitHub identity verification** - Sign in with GitHub OAuth before creating a proof. Your username is embedded in the manifest, cryptographically linking your GitHub identity to your Sui wallet. Impersonation is impossible.
+- **GitHub identity verification** - Sign in with GitHub OAuth before creating a proof. Your authenticated GitHub login is embedded in the manifest, cryptographically linking your GitHub identity to your Sui wallet at submission time.
 - **GitHub repo import** - Import project name, tagline, description, category, and README directly from any public repo in one click.
 - **Walrus evidence storage** - Upload screenshots, PDFs, READMEs, architecture diagrams, and other build artifacts. Each file is individually hashed before upload.
 - **Sui Seal encryption** - Toggle any evidence file to Private. Files are encrypted client-side using Sui Seal before going to Walrus. Only the owner wallet can decrypt them. Not even Vouch can read private files.
-- **On-chain anchoring via Tatum RPC** - Proof pages read Sui state directly through the Tatum Sui JSON-RPC gateway. No Vouch servers are involved in verification.
+- **On-chain anchoring via Tatum RPC** - Proof pages read Sui state through the Tatum Sui JSON-RPC gateway, proxied through a serverless API route that keeps the API key server-side. The hosted app uses a serverless proxy to call Tatum without exposing the API key. Anyone can independently verify using the Sui object ID, Walrus blob ID, and manifest hash.
 - **Independent verification tool** - Paste any proof URL at `/verify`. The tool re-fetches the Walrus blob, re-computes the SHA-256, and compares it to the on-chain hash step by step.
 - **SuiNS resolution** - Owner addresses resolve to `.sui` names where available.
 - **Update proof** - Add new evidence files to an existing proof. Each update increments the version number and re-anchors a new manifest on Sui.
@@ -106,14 +122,14 @@ All state transitions are enforced by the Move contract. The funder cannot relea
 
 ## Contracts
 
-Both contracts are deployed on Sui Testnet.
+Both modules (`vouch` and `grants`) are deployed in the same package.
 
-### vouch (proof registry)
-
-| Field | Value |
+| Network | Package ID |
 |---|---|
-| Package ID | `0x900febc5ddfd0ff86b07c765ebfefce0d0b9fda1ef26f72dfb8e3a17d4340b30` |
-| Network | Sui Testnet |
+| Sui Testnet | `0xe68c1d20ae6414b9aae84c363686b724e95d71d4d934c2b4b70096b13ce4a99d` |
+| Sui Mainnet | `0x62aea664bb9246385964f43ee0ebc87d1024e4ab6c59e47f70402f1550cd0927` |
+
+### vouch module (proof registry)
 
 Entry functions:
 
@@ -122,21 +138,20 @@ Entry functions:
 - `vouch::vouch::deactivate_project` - deactivate a proof
 - `vouch::vouch::seal_approve` - Sui Seal access policy (owner-only decryption)
 
+Public accessors:
+
+- `vouch::vouch::owner` - returns the owner address of a VouchProject (used by grants for ownership verification)
+
 Events emitted:
 
 - `ProjectCreated` - indexed by the Explore page via `suix_queryEvents`
 - `ProjectUpdated` - tracks version history
 
-### vouch_grants (milestone escrow)
-
-| Field | Value |
-|---|---|
-| Package ID | `0x43bfb194938bd12abf1f51a0155f05d90150f2d8b3ff2cece1094663cef19dd7` |
-| Network | Sui Testnet |
+### grants module (milestone escrow)
 
 Entry functions:
 
-- `grants::create_milestone` - builder creates a milestone linked to a VouchProject object ID
+- `grants::create_milestone` - builder passes their VouchProject object (ownership enforced on-chain) to create a milestone
 - `grants::fund_milestone` - funder deposits exact SUI into the milestone escrow
 - `grants::submit_proof` - builder submits a Walrus blob ID and manifest hash as completion proof
 - `grants::release_funds` - funder approves the proof and transfers SUI to the builder

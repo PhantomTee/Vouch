@@ -10,7 +10,7 @@ function requireGrantsPackageId() {
 }
 
 export function buildCreateMilestoneTx(args: {
-  projectId: string;
+  projectObjectId: string;
   title: string;
   description: string;
   rewardMist: bigint;
@@ -19,7 +19,7 @@ export function buildCreateMilestoneTx(args: {
   tx.moveCall({
     target: `${requireGrantsPackageId()}::grants::create_milestone`,
     arguments: [
-      tx.pure.id(args.projectId),
+      tx.object(args.projectObjectId),
       tx.pure.string(args.title),
       tx.pure.string(args.description),
       tx.pure.u64(args.rewardMist),

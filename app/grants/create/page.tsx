@@ -57,7 +57,7 @@ export default function CreateMilestonePage() {
     setStatus("busy"); setErrMsg("");
     try {
       const rewardMist = suiToMist(input.rewardSui);
-      const tx = buildCreateMilestoneTx({ projectId: input.projectId, title: input.title, description: input.description, rewardMist });
+      const tx = buildCreateMilestoneTx({ projectObjectId: input.projectId, title: input.title, description: input.description, rewardMist });
       const result = await signAndExecute({ transaction: tx }) as SuiTransactionBlockResponse;
       const milestoneId = getCreatedMilestoneId(result);
       setStatus("done");

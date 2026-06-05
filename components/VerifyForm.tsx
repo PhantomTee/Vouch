@@ -3,12 +3,12 @@
 import { CheckCircle2, XCircle, Loader2, Circle } from "lucide-react";
 import { useState } from "react";
 import { getObject } from "@/lib/tatum/rpc";
-import { fetchWalrusBlob } from "@/lib/walrus/client";
-import { sha256String } from "@/lib/hash/sha256";
-import type { VouchManifest } from "@/types/vouch";
+import { fetchWalrusBlobRaw, fetchWalrusBlob } from "@/lib/walrus/client";
+import { sha256String, sha256Buffer } from "@/lib/hash/sha256";
+import type { VouchManifest, EvidenceManifestItem } from "@/types/vouch";
 
 type CheckStatus = "pending" | "running" | "ok" | "error" | "skip";
-type Check = { label: string; status: CheckStatus; detail?: string };
+type Check = { label: string; status: CheckStatus; detail?: string; subItems?: { name: string; status: "ok" | "error" | "skip"; detail: string }[] };
 
 function initChecks(): Check[] {
   return [
@@ -98,26 +98,56 @@ export function VerifyForm() {
       let manifest: VouchManifest | null = null;
       try { manifest = JSON.parse(fetched.text) as VouchManifest; } catch { /* no manifest */ }
 
-      // Check 4: Evidence hashes in manifest
+      // Check 4: Fetch each public evidence blob and verify SHA-256
       patch(4, { status: "running" });
       const evidence = manifest?.evidence ?? [];
-      const hashesPresent = evidence.length > 0 && evidence.every((e) => !!e.sha256);
       if (evidence.length === 0) {
         patch(4, { status: "skip", detail: "No evidence files in manifest." });
-      } else if (hashesPresent) {
-        patch(4, { status: "ok", detail: `${evidence.length} file${evidence.length > 1 ? "s" : ""} with SHA-256 hashes` });
       } else {
-        patch(4, { status: "error", detail: "Some evidence files are missing hashes." });
-        allOk = false;
+        const subItems: { name: string; status: "ok" | "error" | "skip"; detail: string }[] = [];
+        let anyFail = false;
+        for (const ev of evidence as EvidenceManifestItem[]) {
+          if (!ev.sha256) {
+            subItems.push({ name: ev.name, status: "error", detail: "No SHA-256 hash recorded" });
+            anyFail = true;
+            continue;
+          }
+          if (ev.sealed) {
+            subItems.push({ name: ev.name, status: "skip", detail: "Private (Seal-encrypted) — owner-only decryption" });
+            continue;
+          }
+          const fetched = await fetchWalrusBlobRaw(ev.walrusBlobId);
+          if (!fetched.ok) {
+            subItems.push({ name: ev.name, status: "error", detail: `Fetch failed: ${fetched.message}` });
+            anyFail = true;
+            continue;
+          }
+          const computed = await sha256Buffer(fetched.data);
+          if (computed === ev.sha256) {
+            subItems.push({ name: ev.name, status: "ok", detail: `SHA-256 ${computed.slice(0, 16)}… matches` });
+          } else {
+            subItems.push({ name: ev.name, status: "error", detail: `Hash mismatch: expected ${ev.sha256.slice(0, 12)}… got ${computed.slice(0, 12)}…` });
+            anyFail = true;
+          }
+        }
+        const passCount = subItems.filter((s) => s.status === "ok").length;
+        const skipCount = subItems.filter((s) => s.status === "skip").length;
+        const failCount = subItems.filter((s) => s.status === "error").length;
+        const summary = `${passCount} PASS, ${skipCount} private, ${failCount} FAIL`;
+        if (anyFail) { patch(4, { status: "error", detail: summary, subItems }); allOk = false; }
+        else { patch(4, { status: "ok", detail: summary, subItems }); }
       }
 
-      // Check 5: GitHub linked
+      // Check 5: GitHub identity anchored in manifest
       patch(5, { status: "running" });
-      const github = manifest?.builder?.links?.github || manifest?.links?.repo;
-      if (github) {
-        patch(5, { status: "ok", detail: github });
+      const githubLogin = manifest?.builder?.githubLogin;
+      const githubUrl = manifest?.builder?.githubUrl || manifest?.builder?.links?.github || manifest?.links?.repo;
+      if (githubLogin) {
+        patch(5, { status: "ok", detail: `@${githubLogin} — anchored at submission time (${githubUrl || ""})` });
+      } else if (githubUrl) {
+        patch(5, { status: "ok", detail: `GitHub repo: ${githubUrl} (login not anchored — older proof)` });
       } else {
-        patch(5, { status: "skip", detail: "No GitHub link in manifest." });
+        patch(5, { status: "skip", detail: "No GitHub identity in manifest." });
       }
 
       // Check 6: Wallet owner matches manifest builder
@@ -178,27 +208,47 @@ export function VerifyForm() {
         </div>
         <div className="divide-y-2 divide-ink/10">
           {checks.map((check, i) => (
-            <div key={i} className="flex items-start gap-3 px-5 py-3.5">
-              <StatusIcon status={check.status} />
-              <div className="min-w-0 flex-1">
-                <p className={`font-mono text-sm font-bold ${check.status === "error" ? "text-coral" : "text-ink"}`}>
-                  {check.label}
-                </p>
-                {check.detail && (
-                  <p className="mt-0.5 break-all font-mono text-xs text-ink/50">{check.detail}</p>
-                )}
+            <div key={i} className="px-5 py-3.5">
+              <div className="flex items-start gap-3">
+                <StatusIcon status={check.status} />
+                <div className="min-w-0 flex-1">
+                  <p className={`font-mono text-sm font-bold ${check.status === "error" ? "text-coral" : "text-ink"}`}>
+                    {check.label}
+                  </p>
+                  {check.detail && (
+                    <p className="mt-0.5 break-all font-mono text-xs text-ink/50">{check.detail}</p>
+                  )}
+                </div>
+                <span className={`shrink-0 font-mono text-xs font-bold ${
+                  check.status === "ok" ? "text-brand-green" :
+                  check.status === "error" ? "text-coral" :
+                  check.status === "skip" ? "text-ink/30" :
+                  "text-ink/20"
+                }`}>
+                  {check.status === "ok" ? "PASS" :
+                   check.status === "error" ? "FAIL" :
+                   check.status === "skip" ? "N/A" :
+                   check.status === "running" ? "..." : ""}
+                </span>
               </div>
-              <span className={`shrink-0 font-mono text-xs font-bold ${
-                check.status === "ok" ? "text-brand-green" :
-                check.status === "error" ? "text-coral" :
-                check.status === "skip" ? "text-ink/30" :
-                "text-ink/20"
-              }`}>
-                {check.status === "ok" ? "PASS" :
-                 check.status === "error" ? "FAIL" :
-                 check.status === "skip" ? "N/A" :
-                 check.status === "running" ? "..." : ""}
-              </span>
+              {check.subItems && check.subItems.length > 0 && (
+                <div className="ml-9 mt-2 space-y-1">
+                  {check.subItems.map((sub, j) => (
+                    <div key={j} className="flex items-start gap-2">
+                      <span className={`shrink-0 font-mono text-[10px] font-bold ${
+                        sub.status === "ok" ? "text-brand-green" :
+                        sub.status === "error" ? "text-coral" : "text-ink/30"
+                      }`}>
+                        {sub.status === "ok" ? "PASS" : sub.status === "error" ? "FAIL" : "PRIV"}
+                      </span>
+                      <div className="min-w-0">
+                        <span className="font-mono text-xs font-bold text-ink">{sub.name}</span>
+                        <span className="ml-2 break-all font-mono text-xs text-ink/40">{sub.detail}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           ))}
         </div>
@@ -217,7 +267,7 @@ export function VerifyForm() {
                 <strong>{result.title}</strong> was anchored on Sui at <strong>{result.timestamp}</strong>.
                 The manifest is stored on Walrus (blob <span className="break-all">{result.blobId.slice(0, 14)}...</span>)
                 and its hash matches the on-chain record exactly.
-                All checks were performed through <strong>Tatum Sui RPC</strong> with no Vouch servers involved.
+                All checks were performed through <strong>Tatum Sui RPC</strong> via the Vouch serverless proxy (which forwards requests without logging them). Anyone can independently verify using the Sui object ID, Walrus blob ID, and manifest hash.
               </p>
             </>
           ) : (

@@ -9,6 +9,7 @@ use sui::sui::SUI;
 use sui::transfer;
 use sui::tx_context::{Self, TxContext};
 use std::string::String;
+use vouch::vouch::VouchProject;
 
 const E_NOT_BUILDER: u64 = 1;
 const E_NOT_FUNDER: u64 = 2;
@@ -79,8 +80,9 @@ public struct MilestoneCancelled has copy, drop {
 }
 
 /// Builder creates a milestone linked to one of their VouchProject objects.
+/// The builder must pass the actual VouchProject object they own, proving ownership on-chain.
 public entry fun create_milestone(
-    project_id: ID,
+    project: &VouchProject,
     title: String,
     description: String,
     reward_mist: u64,
@@ -88,6 +90,8 @@ public entry fun create_milestone(
     ctx: &mut TxContext,
 ) {
     let builder = tx_context::sender(ctx);
+    assert!(vouch::vouch::owner(project) == builder, E_NOT_BUILDER);
+    let project_id = object::id(project);
     let now = clock::timestamp_ms(clock);
     let milestone = Milestone {
         id: object::new(ctx),

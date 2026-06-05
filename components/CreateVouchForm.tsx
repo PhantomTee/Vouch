@@ -11,7 +11,7 @@ import { GitHubImportButton, type ImportedRepoData } from "@/components/GitHubIm
 import { StepProgress } from "@/components/StepProgress";
 import { CartoonMascot } from "@/components/CartoonMascot";
 import { sha256File, sha256String } from "@/lib/hash/sha256";
-import { createManifest } from "@/lib/manifest/createManifest";
+import { createManifest, type GitHubIdentity } from "@/lib/manifest/createManifest";
 import { encryptForOwner } from "@/lib/seal/client";
 import { buildCreateProjectTx } from "@/lib/sui/transactions";
 import { uploadToWalrus } from "@/lib/walrus/client";
@@ -142,7 +142,10 @@ export function CreateVouchForm() {
       }
 
       setStep(3);
-      const manifest = createManifest(parsed, account.address, evidence);
+      const github: GitHubIdentity | undefined = session.user.login
+        ? { githubLogin: session.user.login, githubUrl: `https://github.com/${session.user.login}` }
+        : undefined;
+      const manifest = createManifest(parsed, account.address, evidence, github);
       const json = JSON.stringify(manifest, null, 2);
       setManifestJson(json);
       const manifestHash = await sha256String(json);

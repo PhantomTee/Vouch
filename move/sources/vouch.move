@@ -124,6 +124,11 @@ public entry fun deactivate_project(project: &mut VouchProject, ctx: &mut TxCont
     project.active = false;
 }
 
+/// Returns the owner address of a VouchProject (for cross-module ownership checks).
+public fun owner(project: &VouchProject): address {
+    project.owner
+}
+
 /// Seal key servers call this (via dry-run) to authorize decryption.
 /// id = ownerAddress (32 bytes) ++ random nonce — only the original owner can decrypt.
 public entry fun seal_approve(id: vector<u8>, ctx: &TxContext) {
