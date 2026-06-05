@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { MilestoneCard } from "@/components/MilestoneCard";
 import { MilestoneStatusBadge } from "@/components/MilestoneStatusBadge";
+import { MilestoneSkeleton } from "@/components/ProofSkeleton";
 import { queryMilestoneEvents, getObject } from "@/lib/tatum/rpc";
 import { parseMilestoneFields } from "@/lib/grants/parseMilestone";
 import { useNetwork } from "@/lib/networkContext";
@@ -93,8 +94,8 @@ export default function GrantsPage() {
 
       <div className="mt-6">
         {loading ? (
-          <div className="card-neo p-8 text-center">
-            <p className="font-mono text-sm text-ink/60">Loading milestones via Tatum RPC…</p>
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {Array.from({ length: 6 }).map((_, i) => <MilestoneSkeleton key={i} />)}
           </div>
         ) : displayed.length === 0 ? (
           <div className="card-neo p-8 text-center">

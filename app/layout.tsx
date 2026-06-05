@@ -6,6 +6,7 @@ import { Providers } from "@/components/Providers";
 import { Header } from "@/components/Header";
 import { NetworkTheme } from "@/components/NetworkTheme";
 import { PagePreloader } from "@/components/PagePreloader";
+import { Footer } from "@/components/Footer";
 import { Toaster } from "sonner";
 
 const anton = Anton({ weight: "400", subsets: ["latin"], variable: "--font-anton" });
@@ -43,6 +44,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           <NetworkTheme />
           <Header />
           {children}
+          <Footer />
           <Toaster
             position="bottom-right"
             toastOptions={{

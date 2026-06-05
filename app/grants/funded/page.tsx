@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useCurrentAccount } from "@mysten/dapp-kit";
 import { ArrowRight, Coins } from "lucide-react";
 import { MilestoneCard } from "@/components/MilestoneCard";
+import { MilestoneSkeleton } from "@/components/ProofSkeleton";
 import { queryFundedMilestoneEvents, getObject } from "@/lib/tatum/rpc";
 import { parseMilestoneFields } from "@/lib/grants/parseMilestone";
 import { useNetwork } from "@/lib/networkContext";
@@ -126,8 +127,8 @@ export default function FunderDashboardPage() {
 
           <div className="mt-6">
             {loading ? (
-              <div className="card-neo p-8 text-center">
-                <p className="font-mono text-sm text-ink/60">Loading your funded milestones…</p>
+              <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                {Array.from({ length: 3 }).map((_, i) => <MilestoneSkeleton key={i} />)}
               </div>
             ) : displayed.length === 0 ? (
               <div className="card-neo p-10 text-center">

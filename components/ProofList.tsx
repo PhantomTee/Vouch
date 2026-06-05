@@ -7,6 +7,7 @@ import type { StoredProof } from "@/types/vouch";
 import { queryCreatedEvents } from "@/lib/tatum/rpc";
 import { useNetwork } from "@/lib/networkContext";
 import { NetworkBadge } from "@/components/NetworkBadge";
+import { ProofSkeleton } from "@/components/ProofSkeleton";
 
 type EventsResult = {
   data: Array<{
@@ -85,8 +86,8 @@ export function ProofList({ owner, githubLogin }: { owner?: string; githubLogin?
 
   if (loading) {
     return (
-      <div className="card-neo p-8 text-center">
-        <p className="font-mono text-sm text-ink/60">Loading proofs from Tatum RPC...</p>
+      <div className="grid gap-6 md:grid-cols-2">
+        {Array.from({ length: 4 }).map((_, i) => <ProofSkeleton key={i} />)}
       </div>
     );
   }

@@ -51,6 +51,12 @@ body {
   to   { transform: rotate(360deg); }
 }
 
+@keyframes page-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-page-in { animation: page-in 0.22s ease-out forwards; }
+
 .animate-float      { animation: float 3s ease-in-out infinite; }
 .animate-peek       { animation: peek 2.5s ease-in-out infinite; }
 .animate-wobble     { animation: wobble 2s ease-in-out infinite; }

@@ -6,7 +6,7 @@ import { CheckCircle2, RefreshCw } from "lucide-react";
 import { useState } from "react";
 import { FileDropzone } from "@/components/FileDropzone";
 import { sha256File, sha256String } from "@/lib/hash/sha256";
-import { createManifest } from "@/lib/manifest/createManifest";
+import { createManifest, type GitHubIdentity } from "@/lib/manifest/createManifest";
 import { encryptForOwner } from "@/lib/seal/client";
 import { buildUpdateProjectTx } from "@/lib/sui/transactions";
 import { uploadToWalrus } from "@/lib/walrus/client";
@@ -65,10 +65,14 @@ export function UpdateProofForm({ proof }: { proof: StoredProof }) {
       // Merge with existing evidence
       const allEvidence = [...(proof.manifest.evidence || []), ...evidence];
 
+      const github: GitHubIdentity | undefined = proof.manifest.builder.githubLogin
+        ? { githubLogin: proof.manifest.builder.githubLogin, githubUrl: proof.manifest.builder.githubUrl }
+        : undefined;
       const updatedManifest = createManifest(
         { name: proof.title, tagline: proof.tagline, category: proof.category, description: proof.manifest.project.description, repoUrl: proof.manifest.links.repo, demoUrl: proof.manifest.links.demo, suiUrl: proof.manifest.links.sui, xUrl: proof.manifest.builder.links.x, linkedinUrl: proof.manifest.builder.links.linkedin, displayName: proof.manifest.builder.displayName },
         account.address,
         allEvidence,
+        github,
       );
       const json = JSON.stringify(updatedManifest, null, 2);
       const manifestHash = await sha256String(json);

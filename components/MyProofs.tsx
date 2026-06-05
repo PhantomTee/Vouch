@@ -8,8 +8,27 @@ export function MyProofs() {
   const account = useCurrentAccount();
   const { data: session } = useSession();
 
+  const neitherConnected = !account?.address && !session?.user;
+
   return (
     <div className="space-y-6">
+      {/* Onboarding prompt when nothing is connected */}
+      {neitherConnected && (
+        <div className="card-neo bg-gold/10 p-8 text-center sm:p-10">
+          <span className="btn-neo inline-block bg-gold px-4 py-2 text-xs text-ink">Get started</span>
+          <p className="mt-6 font-display text-3xl text-ink sm:text-4xl">TWO STEPS TO YOUR BUILDERID.</p>
+          <p className="mt-4 font-mono text-sm leading-relaxed text-ink/60">
+            Connect your Sui wallet and sign in with GitHub to create tamper-proof proofs of your builds.
+          </p>
+          <div className="mt-6 flex flex-wrap justify-center gap-3">
+            <button onClick={() => signIn("github")} className="btn-neo bg-ink px-6 py-3 text-sm text-white">
+              Sign in with GitHub
+            </button>
+          </div>
+          <p className="mt-4 font-mono text-xs text-ink/40">Then connect your Sui wallet via the button in the header.</p>
+        </div>
+      )}
+
       {/* Identity cards */}
       <div className="grid gap-4 sm:grid-cols-2">
         {/* GitHub card */}
