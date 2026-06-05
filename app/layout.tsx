@@ -19,11 +19,13 @@ export const metadata: Metadata = {
     url: "https://vouch-proof.vercel.app",
     siteName: "Vouch",
     type: "website",
+    images: [{ url: "https://vouch-proof.vercel.app/og-default.svg", width: 1200, height: 630 }],
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     title: "Vouch — Proof-of-build registry for Sui",
     description: "Anchor your project evidence on Walrus and Sui. Every build, verifiable forever.",
+    images: ["https://vouch-proof.vercel.app/og-default.svg"],
   },
 };
 
