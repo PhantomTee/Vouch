@@ -12,7 +12,13 @@ export async function uploadToWalrus(body: Blob | string, contentType = "applica
   if (!walrusPublisherUrl) return { ok: false, message: "Walrus publisher URL is not configured.", setupHint: "Set NEXT_PUBLIC_WALRUS_PUBLISHER_URL to a Walrus publisher endpoint. Vouch will not fake successful uploads." };
   const response = await fetch(`${normalizeBase(walrusPublisherUrl)}/v1/blobs`, { method: "PUT", headers: { "content-type": contentType }, body });
   const text = await response.text();
-  if (!response.ok) return { ok: false, message: `Walrus upload failed with ${response.status}: ${text}`, setupHint: "Check publisher availability, CORS, and Walrus testnet/mainnet config." };
+  if (!response.ok) {
+    const isServerError = response.status >= 500;
+    const hint = isServerError
+      ? "The Walrus mainnet publisher returned a server error. Try switching to Testnet in the network toggle, or retry in a few minutes — publisher nodes are operated by third parties and may have intermittent downtime."
+      : "Check publisher availability, CORS, and Walrus testnet/mainnet config.";
+    return { ok: false, message: `Walrus upload failed with ${response.status}: ${text}`, setupHint: hint };
+  }
   let data: WalrusStoreResponse;
   try { data = JSON.parse(text) as WalrusStoreResponse; } catch { return { ok: false, message: "Walrus publisher returned non-JSON response.", setupHint: "Use a publisher compatible with the Walrus HTTP store API." }; }
   const blobId = extractBlobId(data);

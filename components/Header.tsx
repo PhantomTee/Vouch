@@ -29,7 +29,7 @@ export function Header() {
         </Link>
 
         {/* Desktop nav */}
-        <nav className="hidden items-center gap-6 font-mono text-xs font-bold uppercase tracking-widest text-ink md:flex">
+        <nav className="hidden items-center gap-6 font-mono text-xs font-bold uppercase tracking-widest text-ink lg:flex">
           {navLinks.map((l) =>
             l.external ? (
               <a key={l.href} href={l.href} target="_blank" rel="noreferrer" className="underline-offset-4 hover:underline">{l.label}</a>
@@ -41,7 +41,7 @@ export function Header() {
 
         <div className="flex shrink-0 items-center gap-2">
           {/* Network toggle - desktop */}
-          <div className="hidden md:flex">
+          <div className="hidden lg:flex">
             <NetworkToggle />
           </div>
 
@@ -49,7 +49,7 @@ export function Header() {
           {session?.user ? (
             <button
               onClick={() => signOut()}
-              className="hidden items-center gap-2 rounded-xl border-2 border-ink bg-white px-3 py-1.5 font-mono text-xs font-bold text-ink hover:bg-gold/30 md:flex"
+              className="hidden items-center gap-2 rounded-xl border-2 border-ink bg-white px-3 py-1.5 font-mono text-xs font-bold text-ink hover:bg-gold/30 lg:flex"
               title="Sign out of GitHub"
             >
               {session.user.image && (
@@ -61,7 +61,7 @@ export function Header() {
           ) : (
             <button
               onClick={() => signIn("github")}
-              className="hidden items-center gap-1.5 rounded-xl border-2 border-ink bg-ink px-3 py-1.5 font-mono text-xs font-bold text-white hover:bg-ink/80 md:flex"
+              className="hidden items-center gap-1.5 rounded-xl border-2 border-ink bg-ink px-3 py-1.5 font-mono text-xs font-bold text-white hover:bg-ink/80 lg:flex"
             >
               Sign in with GitHub
             </button>
@@ -69,7 +69,7 @@ export function Header() {
           <WalletButton />
           {/* Mobile hamburger */}
           <button
-            className="flex items-center justify-center rounded-xl border-2 border-ink bg-white p-2 md:hidden"
+            className="flex items-center justify-center rounded-xl border-2 border-ink bg-white p-2 lg:hidden"
             onClick={() => setOpen((v) => !v)}
             aria-label="Toggle menu"
           >
@@ -80,7 +80,7 @@ export function Header() {
 
       {/* Full-screen mobile overlay */}
       {open && (
-        <div className="fixed inset-0 z-50 flex flex-col bg-[var(--color-surface)] md:hidden">
+        <div className="fixed inset-0 z-50 flex flex-col bg-[var(--color-surface)] lg:hidden">
           {/* Overlay header row */}
           <div className="flex h-[60px] items-center justify-between border-b-4 border-ink px-4 sm:h-[68px] sm:px-6">
             <Link href="/" className="font-display text-xl tracking-tight text-ink sm:text-2xl" onClick={() => setOpen(false)}>
