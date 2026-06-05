@@ -10,8 +10,8 @@ import { NetworkContext } from "@/lib/networkContext";
 import { NetworkAutoDetect } from "@/components/NetworkAutoDetect";
 
 const suiNetworks = {
-  testnet: { url: typeof window !== "undefined" ? "/api/rpc" : (process.env.NEXT_PUBLIC_TATUM_SUI_RPC_URL || "https://sui-testnet.gateway.tatum.io") },
-  mainnet: { url: typeof window !== "undefined" ? "/api/rpc-mainnet" : (process.env.NEXT_PUBLIC_TATUM_SUI_RPC_URL_MAINNET || "https://sui-mainnet.gateway.tatum.io") },
+  testnet: { url: typeof window !== "undefined" ? "/api/rpc" : (process.env.TATUM_SUI_RPC_URL || "https://sui-testnet.gateway.tatum.io") },
+  mainnet: { url: typeof window !== "undefined" ? "/api/rpc-mainnet" : (process.env.TATUM_SUI_RPC_URL_MAINNET || "https://sui-mainnet.gateway.tatum.io") },
 };
 
 function createTatumSuiClient(url: string) {

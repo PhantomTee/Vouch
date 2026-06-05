@@ -17,7 +17,7 @@ export const NETWORK_CONFIGS: Record<NetworkName, NetworkConfig> = {
     name: "testnet",
     tatumRpcUrl: isBrowser
       ? "/api/rpc"
-      : (process.env.NEXT_PUBLIC_TATUM_SUI_RPC_URL || "https://sui-testnet.gateway.tatum.io"),
+      : (process.env.TATUM_SUI_RPC_URL || "https://sui-testnet.gateway.tatum.io"),
     walrusPublisherUrl: process.env.NEXT_PUBLIC_WALRUS_PUBLISHER_URL || "https://publisher.walrus-testnet.walrus.space",
     walrusAggregatorUrl: process.env.NEXT_PUBLIC_WALRUS_AGGREGATOR_URL || "https://aggregator.walrus-testnet.walrus.space",
     packageId: process.env.NEXT_PUBLIC_PACKAGE_ID || "",
@@ -28,7 +28,7 @@ export const NETWORK_CONFIGS: Record<NetworkName, NetworkConfig> = {
     name: "mainnet",
     tatumRpcUrl: isBrowser
       ? "/api/rpc-mainnet"
-      : (process.env.NEXT_PUBLIC_TATUM_SUI_RPC_URL_MAINNET || "https://sui-mainnet.gateway.tatum.io"),
+      : (process.env.TATUM_SUI_RPC_URL_MAINNET || "https://sui-mainnet.gateway.tatum.io"),
     walrusPublisherUrl: process.env.NEXT_PUBLIC_WALRUS_PUBLISHER_URL_MAINNET || "https://walrus-mainnet-publisher-1.staketab.org",
     walrusAggregatorUrl: process.env.NEXT_PUBLIC_WALRUS_AGGREGATOR_URL_MAINNET || "https://aggregator.walrus-mainnet.walrus.space",
     packageId: process.env.NEXT_PUBLIC_PACKAGE_ID_MAINNET || "",
