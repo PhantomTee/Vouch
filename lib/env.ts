@@ -3,8 +3,10 @@ export const env = {
   suiNetwork: process.env.NEXT_PUBLIC_SUI_NETWORK || "testnet",
   tatumRpcUrl: typeof window !== "undefined"
     ? "/api/rpc"
-    : (process.env.NEXT_PUBLIC_TATUM_SUI_RPC_URL || "https://sui-testnet.gateway.tatum.io"),
-  tatumApiKey: process.env.NEXT_PUBLIC_TATUM_API_KEY || "",
+    : (process.env.TATUM_SUI_RPC_URL || "https://sui-testnet.gateway.tatum.io"),
+  // Server-only: TATUM_API_KEY is intentionally not NEXT_PUBLIC_; on the client
+  // all Tatum requests go through /api/rpc or /api/rpc-mainnet which add the key.
+  tatumApiKey: process.env.TATUM_API_KEY || "",
   packageId: process.env.NEXT_PUBLIC_PACKAGE_ID || "",
   registryId: process.env.NEXT_PUBLIC_REGISTRY_ID || "",
   walrusPublisherUrl: process.env.NEXT_PUBLIC_WALRUS_PUBLISHER_URL || "",

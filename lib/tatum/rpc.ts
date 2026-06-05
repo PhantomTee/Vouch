@@ -22,6 +22,14 @@ export async function queryMilestoneEvents(grantsPackageId: string, limit = 50) 
   return tatumRpc("suix_queryEvents", [{ MoveEventType: `${grantsPackageId}::grants::MilestoneCreated` }, null, limit, true]);
 }
 
+export async function queryFundedMilestoneEvents(grantsPackageId: string, limit = 50) {
+  return tatumRpc("suix_queryEvents", [{ MoveEventType: `${grantsPackageId}::grants::MilestoneFunded` }, null, limit, true]);
+}
+
+export async function getObjectsBatch(ids: string[]) {
+  return Promise.all(ids.map((id) => getObject(id)));
+}
+
 export async function resolveNameServiceNames(address: string): Promise<string | null> {
   try {
     const res = await tatumRpc<{ data: string[] }>("suix_resolveNameServiceNames", [address, null, 1]);
