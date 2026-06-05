@@ -5,6 +5,7 @@ import "./globals.css";
 import { Providers } from "@/components/Providers";
 import { Header } from "@/components/Header";
 import { NetworkTheme } from "@/components/NetworkTheme";
+import { PagePreloader } from "@/components/PagePreloader";
 import { Toaster } from "sonner";
 
 const anton = Anton({ weight: "400", subsets: ["latin"], variable: "--font-anton" });
@@ -37,6 +38,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <script dangerouslySetInnerHTML={{ __html: `(function(){try{var n=localStorage.getItem('vouch.network');if(n==='mainnet')document.documentElement.classList.add('theme-mainnet');}catch(e){}})()` }} />
       </head>
       <body>
+        <PagePreloader />
         <Providers>
           <NetworkTheme />
           <Header />
