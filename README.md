@@ -4,6 +4,8 @@
 
 Live: [vouch-proof.vercel.app](https://vouch-proof.vercel.app)
 
+Demo proof (Vouch itself): [vouch-proof.vercel.app/vouch/0x73a8cb4d20f2891a7f504a4834cc4bac8b072b7dc01578da1a5f8dbcdce88239](https://vouch-proof.vercel.app/vouch/0x73a8cb4d20f2891a7f504a4834cc4bac8b072b7dc01578da1a5f8dbcdce88239)
+
 ---
 
 ## Judge quick test
@@ -13,12 +15,12 @@ To verify a real proof end-to-end in under two minutes:
 1. Open [vouch-proof.vercel.app/verify](https://vouch-proof.vercel.app/verify)
 2. Paste the Vouch demo proof object ID:
    ```
-   [paste object ID here after creating demo proof]
+   0x73a8cb4d20f2891a7f504a4834cc4bac8b072b7dc01578da1a5f8dbcdce88239
    ```
 3. Click **Verify proof**
-4. Watch all 8 checks run: Sui object existence, timestamp, Walrus blob fetch, manifest hash match, per-file SHA-256 verification, GitHub identity, wallet ownership, and RPC source
+4. Watch all 8 checks run live: Sui object existence, timestamp, Walrus blob fetch, manifest hash match, per-file SHA-256 of each evidence file, GitHub identity (`@PhantomTee` anchored at submission), wallet ownership match, and RPC source
 
-All checks are performed live against Tatum Sui RPC and Walrus aggregator endpoints. No Vouch backend is involved in any check beyond the serverless RPC proxy.
+The evidence is the README.md of this repository, hashed and stored on Walrus at the time the proof was created. All checks are performed live against Tatum Sui RPC and Walrus aggregator endpoints. No Vouch backend is involved in any check beyond the serverless RPC proxy.
 
 ---
 
