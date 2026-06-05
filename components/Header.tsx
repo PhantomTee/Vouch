@@ -10,6 +10,7 @@ import { useNetwork } from "@/lib/networkContext";
 const navLinks: { href: string; label: string; external?: boolean }[] = [
   { href: "/create", label: "Create" },
   { href: "/explore", label: "Explore" },
+  { href: "/how-it-works", label: "How it works" },
   { href: "/hackathons", label: "HackProof" },
   { href: "/grant-programs", label: "GrantOS" },
   { href: "/grants", label: "Grants" },

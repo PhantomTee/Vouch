@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, Clock, Shield, Trophy, CheckCircle2 } from "lucide-react";
+import { ArrowRight, CheckCircle2 } from "lucide-react";
 import { ProofList } from "@/components/ProofList";
 
 export const metadata: Metadata = {
@@ -10,25 +10,37 @@ export const metadata: Metadata = {
 
 const HOW_IT_WORKS = [
   {
-    icon: Shield,
     title: "Hash your evidence",
     body: "Every file is SHA-256 hashed in the browser before upload. The hash is what gets anchored, not just a link.",
   },
   {
-    icon: Clock,
     title: "Timestamp locked on Sui",
     body: "Your Sui wallet signs the transaction. The resulting object has an immutable blockchain timestamp — the deadline check is on-chain, not in a spreadsheet.",
   },
   {
-    icon: CheckCircle2,
     title: "Evidence stored on Walrus",
     body: "Files go to Walrus decentralised storage. The blob ID and SHA-256 hash are anchored together. No one can swap the file after submission.",
   },
   {
-    icon: Trophy,
     title: "Anyone can verify",
     body: "Judges paste the object ID into /verify and see all checks run live — hash match, timestamp, GitHub identity. No trust in the organiser required.",
   },
+];
+
+const PROBLEMS = [
+  "Git history can be rewritten after the deadline",
+  "Demo links can be redirected to updated code",
+  "Screenshots can be staged at any time",
+  "Google Docs show last-edited date, not created date",
+  "Organisers take timestamps on trust",
+];
+
+const FIXES = [
+  "SHA-256 hash of every file computed in the browser",
+  "Evidence uploaded to Walrus decentralised storage",
+  "Manifest hash anchored on Sui in a signed transaction",
+  "Blockchain timestamp is immutable and publicly verifiable",
+  "GitHub identity linked at submission time via OAuth",
 ];
 
 export default function HackProofPage() {
@@ -54,57 +66,15 @@ export default function HackProofPage() {
         </div>
       </div>
 
-      {/* The problem */}
-      <div className="mt-20 grid gap-6 sm:grid-cols-2">
-        <div className="card-neo border-coral/40 bg-coral/5 p-6">
-          <p className="font-mono text-xs font-bold uppercase tracking-widest text-coral">The problem</p>
-          <h2 className="mt-3 font-display text-2xl text-ink">Hackathon submissions are not tamper-proof</h2>
-          <ul className="mt-4 space-y-2 font-mono text-sm text-ink/70">
-            {[
-              "Git history can be rewritten after the deadline",
-              "Demo links can be redirected to updated code",
-              "Screenshots can be staged at any time",
-              "Google Docs show last-edited date, not created date",
-              "Organisers take timestamps on trust",
-            ].map((item) => (
-              <li key={item} className="flex items-start gap-2">
-                <span className="mt-0.5 shrink-0 text-coral">✕</span> {item}
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        <div className="card-neo border-brand-green/40 bg-brand-green/5 p-6">
-          <p className="font-mono text-xs font-bold uppercase tracking-widest text-brand-green">The fix</p>
-          <h2 className="mt-3 font-display text-2xl text-ink">HackProof anchors everything before the deadline</h2>
-          <ul className="mt-4 space-y-2 font-mono text-sm text-ink/70">
-            {[
-              "SHA-256 hash of every file computed in the browser",
-              "Evidence uploaded to Walrus decentralised storage",
-              "Manifest hash anchored on Sui in a signed transaction",
-              "Blockchain timestamp is immutable and publicly verifiable",
-              "GitHub identity linked at submission time via OAuth",
-            ].map((item) => (
-              <li key={item} className="flex items-start gap-2">
-                <span className="mt-0.5 shrink-0 text-brand-green">✓</span> {item}
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
-
       {/* How it works */}
       <div className="mt-20">
         <h2 className="text-center font-display text-3xl text-ink sm:text-4xl">HOW IT WORKS</h2>
         <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {HOW_IT_WORKS.map((step, i) => (
             <div key={step.title} className="card-neo p-5">
-              <div className="flex items-center gap-3">
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border-2 border-ink font-mono text-xs font-bold">
-                  {i + 1}
-                </span>
-                <step.icon size={18} className="shrink-0 text-ink/60" />
-              </div>
+              <span className="flex h-8 w-8 items-center justify-center rounded-xl border-2 border-ink font-mono text-xs font-bold">
+                {i + 1}
+              </span>
               <p className="mt-4 font-display text-lg text-ink">{step.title}</p>
               <p className="mt-2 font-mono text-xs leading-relaxed text-ink/60">{step.body}</p>
             </div>
@@ -174,6 +144,65 @@ export default function HackProofPage() {
         <p className="mt-2 font-mono text-sm text-ink/60">All proofs on Vouch — each one is a tamper-proof build submission.</p>
         <div className="mt-6">
           <ProofList />
+        </div>
+      </div>
+
+      {/* Problem / Fix comparison — bottom of page */}
+      <div className="mt-20">
+        <h2 className="text-center font-display text-3xl text-ink sm:text-4xl">WHY IT MATTERS</h2>
+
+        {/* Mobile: two stacked cards */}
+        <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:hidden">
+          <div className="card-neo border-coral/40 bg-coral/5 p-6">
+            <p className="font-mono text-xs font-bold uppercase tracking-widest text-coral">The problem</p>
+            <h3 className="mt-3 font-display text-xl text-ink">Hackathon submissions are not tamper-proof</h3>
+            <ul className="mt-4 space-y-2 font-mono text-sm text-ink/70">
+              {PROBLEMS.map((item) => (
+                <li key={item} className="flex items-start gap-2">
+                  <span className="mt-0.5 shrink-0 text-coral">✕</span> {item}
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div className="card-neo border-brand-green/40 bg-brand-green/5 p-6">
+            <p className="font-mono text-xs font-bold uppercase tracking-widest text-brand-green">The fix</p>
+            <h3 className="mt-3 font-display text-xl text-ink">HackProof anchors everything before the deadline</h3>
+            <ul className="mt-4 space-y-2 font-mono text-sm text-ink/70">
+              {FIXES.map((item) => (
+                <li key={item} className="flex items-start gap-2">
+                  <span className="mt-0.5 shrink-0 text-brand-green">✓</span> {item}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+
+        {/* Desktop: comparison table */}
+        <div className="mt-8 hidden lg:block">
+          <table className="w-full border-collapse overflow-hidden rounded-2xl border-4 border-ink shadow-neo">
+            <thead>
+              <tr>
+                <th className="w-1/2 border-b-4 border-r-2 border-ink bg-coral/10 px-8 py-4 text-left font-mono text-xs font-bold uppercase tracking-widest text-coral">
+                  The problem — without HackProof
+                </th>
+                <th className="w-1/2 border-b-4 border-l-2 border-ink bg-brand-green/10 px-8 py-4 text-left font-mono text-xs font-bold uppercase tracking-widest text-brand-green">
+                  The fix — with HackProof
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {PROBLEMS.map((problem, i) => (
+                <tr key={problem} className={i % 2 === 0 ? "bg-white" : "bg-ink/[0.02]"}>
+                  <td className="border-r-2 border-ink/10 px-8 py-4 font-mono text-sm text-ink/70">
+                    <span className="mr-3 font-bold text-coral">✕</span>{problem}
+                  </td>
+                  <td className="border-l-2 border-ink/10 px-8 py-4 font-mono text-sm text-ink/70">
+                    <span className="mr-3 font-bold text-brand-green">✓</span>{FIXES[i]}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
     </main>
