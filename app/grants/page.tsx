@@ -66,9 +66,14 @@ export default function GrantsPage() {
             Fund builders based on verified evidence. SUI is locked on-chain and released only when proof is submitted and approved.
           </p>
         </div>
-        <Link href="/grants/create" className="btn-neo flex items-center gap-2 bg-ink px-5 py-3 text-sm text-white">
-          Create milestone <ArrowRight size={14} />
-        </Link>
+        <div className="flex flex-wrap gap-3">
+          <Link href="/grants/funded" className="btn-neo flex items-center gap-2 bg-white px-5 py-3 text-sm text-ink">
+            My funded <ArrowRight size={14} />
+          </Link>
+          <Link href="/grants/create" className="btn-neo flex items-center gap-2 bg-ink px-5 py-3 text-sm text-white">
+            Create milestone <ArrowRight size={14} />
+          </Link>
+        </div>
       </div>
 
       {/* Status filter */}

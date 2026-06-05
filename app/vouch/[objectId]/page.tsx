@@ -17,6 +17,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const desc = tagline || `Verified proof of build${category ? ` · ${category}` : ""} on Sui.`;
     const url = `${base}/vouch/${params.objectId}`;
 
+    const ogImage = `${base}/api/og/${params.objectId}`;
     return {
       title: `${title} — Vouch`,
       description: desc,
@@ -26,11 +27,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         url,
         siteName: "Vouch",
         type: "website",
+        images: [{ url: ogImage, width: 1200, height: 630, alt: title }],
       },
       twitter: {
-        card: "summary",
+        card: "summary_large_image",
         title: `${title} — Verified on Sui`,
         description: desc,
+        images: [ogImage],
       },
     };
   } catch {
