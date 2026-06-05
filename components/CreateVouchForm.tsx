@@ -86,7 +86,7 @@ export function CreateVouchForm() {
   function handleImport(data: ImportedRepoData) {
     setInput((prev) => ({
       ...prev,
-      name: data.name || prev.name,
+      name: prev.name || data.name,
       tagline: data.tagline || prev.tagline,
       category: data.category || prev.category,
       description: data.description || prev.description,
@@ -190,7 +190,7 @@ export function CreateVouchForm() {
     <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
       <section className="card-neo min-w-0 p-4 sm:p-6">
         <GitHubImportButton onImport={handleImport} />
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="mt-5 grid gap-4 sm:grid-cols-2">
           {([
             ["name", "Project name"],
             ["tagline", "Tagline"],
