@@ -4,13 +4,24 @@ export type WalrusUploadResult = { ok: true; blobId: string; raw: unknown } | { 
 
 type WalrusStoreResponse = { newlyCreated?: { blobObject?: { blobId?: string }; blobId?: string }; alreadyCertified?: { blobId?: string }; blobId?: string; blob_id?: string };
 
+const FALLBACK_AGGREGATORS = {
+  testnet: "https://aggregator.walrus-testnet.walrus.space",
+  mainnet: "https://aggregator.walrus-mainnet.walrus.space",
+};
+
 function normalizeBase(url: string) { return url.replace(/\/$/, ""); }
 function extractBlobId(data: WalrusStoreResponse): string | undefined { return data.newlyCreated?.blobObject?.blobId || data.newlyCreated?.blobId || data.alreadyCertified?.blobId || data.blobId || data.blob_id; }
 
+function getWalrusBlobUrls(blobId: string): string[] {
+  const { name, walrusAggregatorUrl } = getActiveNetworkConfig();
+  if (!walrusAggregatorUrl || !blobId) return [];
+  const bases = [walrusAggregatorUrl, FALLBACK_AGGREGATORS[name]];
+  return Array.from(new Set(bases.filter(Boolean).map(normalizeBase)))
+    .map((base) => `${base}/v1/blobs/${encodeURIComponent(blobId)}`);
+}
+
 export function getWalrusBlobUrl(blobId: string): string {
-  const { walrusAggregatorUrl } = getActiveNetworkConfig();
-  if (!walrusAggregatorUrl || !blobId) return "";
-  return `${normalizeBase(walrusAggregatorUrl)}/v1/blobs/${encodeURIComponent(blobId)}`;
+  return getWalrusBlobUrls(blobId)[0] || "";
 }
 
 export async function uploadToWalrus(body: Blob | string, contentType = "application/octet-stream"): Promise<WalrusUploadResult> {
@@ -35,15 +46,24 @@ export async function uploadToWalrus(body: Blob | string, contentType = "applica
 export async function fetchWalrusBlob(blobId: string): Promise<{ ok: true; text: string } | { ok: false; message: string }> {
   const { walrusAggregatorUrl } = getActiveNetworkConfig();
   if (!walrusAggregatorUrl) return { ok: false, message: "Walrus aggregator URL is not configured. Set NEXT_PUBLIC_WALRUS_AGGREGATOR_URL to fetch manifests." };
-  const response = await fetch(getWalrusBlobUrl(blobId));
-  const text = await response.text();
-  return response.ok ? { ok: true, text } : { ok: false, message: `Walrus fetch failed with ${response.status}: ${text}` };
+  let lastMessage = "";
+  for (const url of getWalrusBlobUrls(blobId)) {
+    const response = await fetch(url);
+    const text = await response.text();
+    if (response.ok) return { ok: true, text };
+    lastMessage = `Walrus fetch failed with ${response.status}: ${text}`;
+  }
+  return { ok: false, message: lastMessage || "Walrus fetch failed." };
 }
 
 export async function fetchWalrusBlobRaw(blobId: string): Promise<{ ok: true; data: ArrayBuffer } | { ok: false; message: string }> {
   const { walrusAggregatorUrl } = getActiveNetworkConfig();
   if (!walrusAggregatorUrl) return { ok: false, message: "Walrus aggregator URL is not configured." };
-  const response = await fetch(getWalrusBlobUrl(blobId));
-  if (!response.ok) return { ok: false, message: `Walrus fetch failed with ${response.status}` };
-  return { ok: true, data: await response.arrayBuffer() };
+  let lastMessage = "";
+  for (const url of getWalrusBlobUrls(blobId)) {
+    const response = await fetch(url);
+    if (response.ok) return { ok: true, data: await response.arrayBuffer() };
+    lastMessage = `Walrus fetch failed with ${response.status}`;
+  }
+  return { ok: false, message: lastMessage || "Walrus fetch failed." };
 }
