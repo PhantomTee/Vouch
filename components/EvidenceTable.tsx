@@ -1,7 +1,8 @@
 "use client";
 
-import { FileText, Lock } from "lucide-react";
+import { ExternalLink, FileText, ImageIcon, Lock } from "lucide-react";
 import { SealDecryptButton } from "@/components/SealDecryptButton";
+import { getWalrusBlobUrl } from "@/lib/walrus/client";
 import type { EvidenceManifestItem } from "@/types/vouch";
 
 function mimeLabel(mimeType: string, type: string) {
@@ -23,16 +24,17 @@ export function EvidenceTable({ evidence }: { evidence: EvidenceManifestItem[] }
 
   return (
     <div className="space-y-3">
-      {evidence.map((item) => (
-        <div
-          key={`${item.name}-${item.sha256}`}
-          className="card-neo overflow-hidden p-4 sm:p-5"
-        >
+      {evidence.map((item) => {
+        const isPublicImage = !item.sealed && item.mimeType.startsWith("image/") && Boolean(item.walrusBlobId);
+        const walrusUrl = getWalrusBlobUrl(item.walrusBlobId);
+        return (
+        <div key={`${item.name}-${item.sha256}`} className="card-neo overflow-hidden p-4 sm:p-5">
           {/* Top row: file name + type badge + access */}
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div className="flex min-w-0 items-center gap-2">
               {item.sealed
                 ? <Lock size={15} className="shrink-0 text-ink/50" />
+                : isPublicImage ? <ImageIcon size={15} className="shrink-0 text-ink/40" />
                 : <FileText size={15} className="shrink-0 text-ink/40" />
               }
               <span className="min-w-0 break-all font-mono text-sm font-bold text-ink">
@@ -49,11 +51,35 @@ export function EvidenceTable({ evidence }: { evidence: EvidenceManifestItem[] }
             </div>
           </div>
 
+          {isPublicImage && walrusUrl ? (
+            <a
+              href={walrusUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-4 block overflow-hidden rounded-xl border-2 border-ink bg-white"
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={walrusUrl}
+                alt={item.name}
+                className="max-h-[420px] w-full object-contain"
+                loading="lazy"
+              />
+            </a>
+          ) : null}
+
           {/* Details: blob ID + hash */}
           <div className="mt-3 grid gap-2 sm:grid-cols-2">
             <div className="min-w-0 rounded-lg bg-ink/5 px-3 py-2">
               <p className="font-mono text-[10px] font-bold uppercase tracking-wider text-ink/40">Walrus blob</p>
-              <p className="mt-0.5 truncate font-mono text-xs text-brand-blue">{item.walrusBlobId || "—"}</p>
+              {walrusUrl ? (
+                <a href={walrusUrl} target="_blank" rel="noreferrer" className="mt-0.5 flex items-center gap-1 truncate font-mono text-xs text-brand-blue">
+                  <span className="truncate">{item.walrusBlobId}</span>
+                  <ExternalLink size={11} className="shrink-0" />
+                </a>
+              ) : (
+                <p className="mt-0.5 truncate font-mono text-xs text-brand-blue">—</p>
+              )}
             </div>
             <div className="min-w-0 rounded-lg bg-ink/5 px-3 py-2">
               <p className="font-mono text-[10px] font-bold uppercase tracking-wider text-ink/40">SHA-256</p>
@@ -72,7 +98,8 @@ export function EvidenceTable({ evidence }: { evidence: EvidenceManifestItem[] }
             </div>
           )}
         </div>
-      ))}
+      );
+      })}
     </div>
   );
 }
