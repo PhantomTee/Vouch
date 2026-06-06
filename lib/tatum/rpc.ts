@@ -3,13 +3,37 @@ import { env } from "@/lib/env";
 
 export type JsonRpcResponse<T> = { jsonrpc: "2.0"; id: number; result?: T; error?: { code: number; message: string; data?: unknown } };
 
+const RETRYABLE_STATUS = new Set([408, 429, 500, 502, 503, 504]);
+
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 export async function tatumRpc<T>(method: string, params: unknown[] = []): Promise<T> {
   const headers: Record<string, string> = { "content-type": "application/json" };
   if (env.tatumApiKey) headers["x-api-key"] = env.tatumApiKey;
-  const response = await fetch(getActiveNetworkConfig().tatumRpcUrl, { method: "POST", headers, body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }) });
-  const payload = (await response.json()) as JsonRpcResponse<T>;
-  if (!response.ok || payload.error || payload.result === undefined) throw new Error(payload.error?.message || `Tatum RPC request failed with ${response.status}`);
-  return payload.result;
+  const body = JSON.stringify({ jsonrpc: "2.0", id: 1, method, params });
+  let lastError = "";
+
+  for (let attempt = 0; attempt < 4; attempt++) {
+    const response = await fetch(getActiveNetworkConfig().tatumRpcUrl, { method: "POST", headers, body });
+    const text = await response.text();
+    let payload: JsonRpcResponse<T> | null = null;
+    try { payload = JSON.parse(text) as JsonRpcResponse<T>; } catch { /* gateway may return plain text on rate limits */ }
+
+    if (response.ok && payload && !payload.error && payload.result !== undefined) return payload.result;
+
+    lastError = payload?.error?.message || text || `Tatum RPC request failed with ${response.status}`;
+    if (!RETRYABLE_STATUS.has(response.status) || attempt === 3) break;
+
+    const retryAfter = Number(response.headers.get("retry-after"));
+    const backoffMs = Number.isFinite(retryAfter) && retryAfter > 0
+      ? retryAfter * 1000
+      : 350 * Math.pow(2, attempt);
+    await sleep(backoffMs);
+  }
+
+  throw new Error(lastError);
 }
 
 export type TatumInfraStatus = {
