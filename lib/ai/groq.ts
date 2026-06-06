@@ -71,7 +71,7 @@ function compactContext(context: ProofContext) {
   };
 }
 
-async function groqChat(messages: { role: "system" | "user"; content: string }[]) {
+async function groqChat(messages: { role: "system" | "user"; content: string }[], jsonMode = false) {
   if (!process.env.GROQ_API_KEY) throw new Error("GROQ_API_KEY is not configured.");
   const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
     method: "POST",
@@ -84,11 +84,30 @@ async function groqChat(messages: { role: "system" | "user"; content: string }[]
       temperature: 0.2,
       max_tokens: 700,
       messages,
+      ...(jsonMode ? { response_format: { type: "json_object" } } : {}),
     }),
   });
   const payload = await response.json() as { choices?: { message?: { content?: string } }[]; error?: { message?: string } };
   if (!response.ok) throw new Error(payload.error?.message || `Groq request failed with ${response.status}`);
   return payload.choices?.[0]?.message?.content?.trim() || "";
+}
+
+function parseBrief(content: string, fallback: JudgeBrief): JudgeBrief {
+  const cleaned = content
+    .replace(/^```json\s*/i, "")
+    .replace(/^```\s*/i, "")
+    .replace(/```$/i, "")
+    .trim();
+  const start = cleaned.indexOf("{");
+  const end = cleaned.lastIndexOf("}");
+  const jsonText = start >= 0 && end > start ? cleaned.slice(start, end + 1) : cleaned;
+  const parsed = JSON.parse(jsonText) as Partial<JudgeBrief>;
+  return {
+    summary: typeof parsed.summary === "string" ? parsed.summary : fallback.summary,
+    strengths: Array.isArray(parsed.strengths) ? parsed.strengths.map(String).slice(0, 4) : fallback.strengths,
+    missingSignals: Array.isArray(parsed.missingSignals) ? parsed.missingSignals.map(String).slice(0, 4) : fallback.missingSignals,
+    judgeNotes: Array.isArray(parsed.judgeNotes) ? parsed.judgeNotes.map(String).slice(0, 4) : fallback.judgeNotes,
+  };
 }
 
 export async function createJudgeBrief(context: ProofContext): Promise<JudgeBrief & { source: "groq" | "fallback" }> {
@@ -97,15 +116,8 @@ export async function createJudgeBrief(context: ProofContext): Promise<JudgeBrie
     const content = await groqChat([
       { role: "system", content: `${SYSTEM_PROMPT}\nReturn only JSON with keys summary, strengths, missingSignals, judgeNotes. Each array should have 2-4 short strings.` },
       { role: "user", content: JSON.stringify(compactContext(context)) },
-    ]);
-    const parsed = JSON.parse(content) as JudgeBrief;
-    return {
-      summary: parsed.summary || fallback.summary,
-      strengths: Array.isArray(parsed.strengths) ? parsed.strengths.slice(0, 4) : fallback.strengths,
-      missingSignals: Array.isArray(parsed.missingSignals) ? parsed.missingSignals.slice(0, 4) : fallback.missingSignals,
-      judgeNotes: Array.isArray(parsed.judgeNotes) ? parsed.judgeNotes.slice(0, 4) : fallback.judgeNotes,
-      source: "groq",
-    };
+    ], true);
+    return { ...parseBrief(content, fallback), source: "groq" };
   } catch {
     return { ...fallback, source: "fallback" };
   }
