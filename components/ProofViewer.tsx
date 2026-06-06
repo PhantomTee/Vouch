@@ -14,6 +14,7 @@ import { TatumStatusCard } from "@/components/TatumStatusCard";
 import { fetchWalrusBlob } from "@/lib/walrus/client";
 import { getObject } from "@/lib/tatum/rpc";
 import { sha256String } from "@/lib/hash/sha256";
+import { absoluteAppUrl } from "@/lib/url";
 import type { StoredProof, VouchManifest } from "@/types/vouch";
 
 type ObjectResponse = {
@@ -43,7 +44,7 @@ export function ProofViewer({ objectId }: { objectId: string }) {
   const [manifestText, setManifestText] = useState("");
   const [computedManifestHash, setComputedManifestHash] = useState("");
   const proofUrl = useMemo(
-    () => (typeof window === "undefined" ? `/vouch/${objectId}` : window.location.href),
+    () => absoluteAppUrl(`/vouch/${objectId}`, typeof window === "undefined" ? undefined : window.location.origin),
     [objectId]
   );
 

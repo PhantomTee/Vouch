@@ -1,5 +1,6 @@
 export const env = {
   appName: process.env.NEXT_PUBLIC_APP_NAME || "Vouch",
+  siteUrl: process.env.NEXT_PUBLIC_SITE_URL || "",
   suiNetwork: process.env.NEXT_PUBLIC_SUI_NETWORK || "testnet",
   tatumRpcUrl: typeof window !== "undefined"
     ? "/api/rpc"
