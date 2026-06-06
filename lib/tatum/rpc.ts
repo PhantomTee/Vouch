@@ -12,8 +12,50 @@ export async function tatumRpc<T>(method: string, params: unknown[] = []): Promi
   return payload.result;
 }
 
-export async function getRpcStatus(): Promise<{ ok: boolean; label: string; detail: string }> {
-  try { const result = await tatumRpc<{ protocolVersion?: string; attributes?: Record<string, unknown> }>("sui_getProtocolConfig", []); return { ok: true, label: "Tatum Sui RPC online", detail: `Protocol ${result.protocolVersion || "latest"} via ${env.tatumRpcUrl}` }; } catch (error) { return { ok: false, label: "Tatum Sui RPC unavailable", detail: error instanceof Error ? error.message : "Unknown RPC error" }; }
+export type TatumInfraStatus = {
+  ok: boolean;
+  label: string;
+  detail: string;
+  network: string;
+  endpointName: string;
+  latencyMs?: number;
+  lastRead?: string;
+};
+
+export async function getRpcStatus(objectId?: string): Promise<TatumInfraStatus> {
+  const config = getActiveNetworkConfig();
+  const start = Date.now();
+  try {
+    const result = objectId
+      ? await getObject(objectId) as { data?: { objectId?: string; previousTransaction?: string } }
+      : await tatumRpc<{ protocolVersion?: string; attributes?: Record<string, unknown> }>("sui_getProtocolConfig", []);
+    const latencyMs = Date.now() - start;
+    let lastRead: string;
+    if (objectId) {
+      const objectResult = result as { data?: { objectId?: string; previousTransaction?: string } };
+      lastRead = `Object ${objectId.slice(0, 10)}...${objectResult.data?.previousTransaction ? ` tx ${objectResult.data.previousTransaction.slice(0, 10)}...` : ""}`;
+    } else {
+      const protocolResult = result as { protocolVersion?: string };
+      lastRead = `Protocol ${protocolResult.protocolVersion || "latest"}`;
+    }
+    return {
+      ok: true,
+      label: "Verified through Tatum Sui RPC",
+      detail: `${lastRead} in ${latencyMs}ms`,
+      network: config.name,
+      endpointName: config.name === "mainnet" ? "Tatum Sui Mainnet gateway" : "Tatum Sui Testnet gateway",
+      latencyMs,
+      lastRead,
+    };
+  } catch (error) {
+    return {
+      ok: false,
+      label: "Tatum Sui RPC unavailable",
+      detail: error instanceof Error ? error.message : "Unknown RPC error",
+      network: config.name,
+      endpointName: config.name === "mainnet" ? "Tatum Sui Mainnet gateway" : "Tatum Sui Testnet gateway",
+    };
+  }
 }
 
 export async function getObject(objectId: string) { return tatumRpc("sui_getObject", [objectId, { showContent: true, showOwner: true, showPreviousTransaction: true, showDisplay: true }]); }

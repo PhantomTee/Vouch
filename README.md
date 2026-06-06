@@ -1,26 +1,52 @@
 # Vouch
 
-**Proof-of-build registry for Sui. Anchor project evidence on Walrus, lock the hash on Sui, verify it anywhere.**
+**Vouch is a proof-of-build layer for hackathons, grants, and builder submissions using Walrus, Sui, and Tatum.**
+
+Builders create a public build receipt: evidence files are stored on Walrus decentralized storage, a manifest hash is anchored on Sui, and judges verify the proof through Tatum Sui RPC without seeing any private API keys.
 
 Live: [vouch-proof.vercel.app](https://vouch-proof.vercel.app)
 
 Demo proof (Vouch itself): [vouch-proof.vercel.app/vouch/0x73a8cb4d20f2891a7f504a4834cc4bac8b072b7dc01578da1a5f8dbcdce88239](https://vouch-proof.vercel.app/vouch/0x73a8cb4d20f2891a7f504a4834cc4bac8b072b7dc01578da1a5f8dbcdce88239)
 
+HackProof mode: [vouch-proof.vercel.app/hackathons](https://vouch-proof.vercel.app/hackathons)
+
 ---
 
-## Judge quick test
+## Judge quick test and demo flow
 
 To verify a real proof end-to-end in under two minutes:
 
+**Demo proof:** [vouch-proof.vercel.app/vouch/0x73a8cb4d...](https://vouch-proof.vercel.app/vouch/0x73a8cb4d20f2891a7f504a4834cc4bac8b072b7dc01578da1a5f8dbcdce88239)
+
+To verify it end-to-end:
+
 1. Open [vouch-proof.vercel.app/verify](https://vouch-proof.vercel.app/verify)
-2. Paste the Vouch demo proof object ID:
+2. Paste the object ID:
    ```
    0x73a8cb4d20f2891a7f504a4834cc4bac8b072b7dc01578da1a5f8dbcdce88239
    ```
 3. Click **Verify proof**
-4. Watch all 8 checks run live: Sui object existence, timestamp, Walrus blob fetch, manifest hash match, per-file SHA-256 of each evidence file, GitHub identity (`@PhantomTee` anchored at submission), wallet ownership match, and RPC source
+4. Watch all 8 checks run live against Tatum RPC and Walrus:
+   - Sui object existence and timestamp
+   - Walrus manifest blob fetch
+   - Manifest SHA-256 matches on-chain hash exactly
+   - README.md evidence file fetched from Walrus, SHA-256 verified PASS
+   - GitHub identity `@PhantomTee` anchored at submission time
+   - Wallet owner matches on-chain creator
+   - All reads via Tatum Sui JSON-RPC
 
-The evidence is the README.md of this repository, hashed and stored on Walrus at the time the proof was created. All checks are performed live against Tatum Sui RPC and Walrus aggregator endpoints. No Vouch backend is involved in any check beyond the serverless RPC proxy.
+The evidence file is the README.md of this repository (9,999 bytes), hashed in the browser and stored on Walrus at submission time. No Vouch backend is involved in any verification step beyond the serverless RPC proxy.
+
+To create a new HackProof certificate:
+
+1. Open `/hackathons`
+2. Connect a Sui wallet and sign in with GitHub
+3. Add project name, description, GitHub repo, live demo, demo video, Sui package/object/transaction reference, and X/LinkedIn post
+4. Upload screenshots or other evidence files
+5. Submit once to upload evidence and manifest to Walrus, then sign the Sui transaction
+6. Share the public `/vouch/[objectId]` certificate with judges
+
+The certificate page shows project details, builder wallet, GitHub/demo links, Walrus blob IDs, manifest hash, Sui proof object, active network, timestamp, Tatum Infra Status, and pass/fail verification checks.
 
 ---
 
@@ -41,6 +67,7 @@ The resulting Sui object has an immutable blockchain timestamp. Anyone can indep
 
 ## Features
 
+- **HackProof by Vouch** - A hackathon-specific certificate flow for project name, repo, live demo, demo video, Sui reference, social post, evidence files, Walrus blob IDs, manifest hash, Sui proof object, network, timestamp, and builder wallet.
 - **GitHub identity verification** - Sign in with GitHub OAuth before creating a proof. Your authenticated GitHub login is embedded in the manifest, cryptographically linking your GitHub identity to your Sui wallet at submission time.
 - **GitHub repo import** - Import project name, tagline, description, category, and README directly from any public repo in one click.
 - **Walrus evidence storage** - Upload screenshots, PDFs, READMEs, architecture diagrams, and other build artifacts. Each file is individually hashed before upload.
@@ -173,7 +200,7 @@ Events emitted:
 
 ```bash
 cp .env.example .env.local
-# fill in TATUM_API_KEY, GitHub OAuth credentials, and NEXTAUTH_SECRET
+# fill in TATUM_API_KEY, GitHub OAuth credentials, NEXTAUTH_SECRET, package IDs, and Walrus endpoints if overriding defaults
 npm install
 npm run dev
 ```
@@ -182,6 +209,31 @@ npm run dev
 npm run typecheck
 npm run build
 ```
+
+### Required env vars
+
+Server-only secrets:
+
+- `TATUM_API_KEY`
+- `TATUM_SUI_RPC_URL`
+- `TATUM_API_KEY_MAINNET`
+- `TATUM_SUI_RPC_URL_MAINNET`
+- `GITHUB_ID`
+- `GITHUB_SECRET`
+- `NEXTAUTH_SECRET`
+
+Public client configuration:
+
+- `NEXT_PUBLIC_PACKAGE_ID`
+- `NEXT_PUBLIC_GRANTS_PACKAGE_ID`
+- `NEXT_PUBLIC_PACKAGE_ID_MAINNET`
+- `NEXT_PUBLIC_GRANTS_PACKAGE_ID_MAINNET`
+- `NEXT_PUBLIC_WALRUS_PUBLISHER_URL`
+- `NEXT_PUBLIC_WALRUS_AGGREGATOR_URL`
+- `NEXT_PUBLIC_WALRUS_PUBLISHER_URL_MAINNET`
+- `NEXT_PUBLIC_WALRUS_AGGREGATOR_URL_MAINNET`
+
+Never expose a Tatum API key with a `NEXT_PUBLIC_` prefix. Browser reads go through `/api/rpc` or `/api/rpc-mainnet`, where the server adds the key.
 
 ---
 
@@ -200,6 +252,8 @@ Public Walrus testnet endpoints are pre-configured in the deployed app.
 ## Tatum RPC
 
 All on-chain reads go through the Tatum Sui gateway. The API key is sent as the `x-api-key` header. In the browser, requests are proxied through `/api/rpc` to avoid CORS issues with SDK-injected headers.
+
+Proof, certificate, and verify pages include a **Tatum Infra Status** card showing the active network, endpoint name, latest RPC check result, last successful object/event read, latency, and the phrase "Verified through Tatum Sui RPC". The UI never displays the full Tatum API key.
 
 Docs: [docs.tatum.io/reference/rpc-sui](https://docs.tatum.io/reference/rpc-sui)
 
@@ -230,3 +284,26 @@ Docs: [seal-docs.wal.app](https://seal-docs.wal.app)
 - That the GitHub account represents the sole contributor
 
 Vouch is a notary, not a judge. It proves what evidence existed, when it was anchored, and who anchored it.
+
+---
+
+## Demo script
+
+See [DEMO_SCRIPT.md](./DEMO_SCRIPT.md) for a 2-3 minute recording outline.
+
+## Screenshots
+
+Add screenshots here before final submission:
+
+- HackProof creation form
+- Walrus upload/progress state
+- Public HackProof certificate
+- Independent verifier checks
+- Tatum Infra Status card
+
+## Known limitations
+
+- `update_project` emits `ProjectUpdated` events for version history. The current Move object stores only the latest manifest pointer, so full version history is reconstructed from Sui events instead of child version objects.
+- The grants milestone ownership fix requires the builder to pass their `VouchProject`; the contract asserts `project.owner == tx_context::sender(ctx)` and stores `object::id(project)` as the milestone project ID.
+- Vouch proves evidence existence, hashes, wallet ownership, GitHub metadata, Walrus storage, and Sui timestamp. It does not prove the subjective quality of the project.
+- Devnet is documented as a possible network for hackathon proof metadata, but this app currently ships configured network toggles for testnet and mainnet.

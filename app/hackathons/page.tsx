@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, CheckCircle2 } from "lucide-react";
+import { HackProofForm } from "@/components/HackProofForm";
 import { ProofList } from "@/components/ProofList";
 
 export const metadata: Metadata = {
@@ -53,17 +54,21 @@ export default function HackProofPage() {
           PROVE YOU<br />SHIPPED IT.
         </h1>
         <p className="mx-auto mt-6 max-w-2xl font-mono text-sm leading-relaxed text-ink/60 sm:text-base">
-          Submit your hackathon project with a tamper-proof, blockchain-timestamped proof.
-          Git history can be rewritten. Screenshots can be staged. A Sui transaction cannot.
+          Submit your hackathon project with a public proof certificate: evidence stored on Walrus,
+          manifest hash anchored on Sui, and verification read through Tatum Sui RPC.
         </p>
         <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
-          <Link href="/create" className="btn-neo flex items-center gap-2 bg-ink px-6 py-3 text-sm text-white">
-            Submit your project <ArrowRight size={14} />
-          </Link>
+          <a href="#create-hackproof" className="btn-neo flex items-center gap-2 bg-ink px-6 py-3 text-sm text-white">
+            Create HackProof <ArrowRight size={14} />
+          </a>
           <Link href="/verify" className="btn-neo flex items-center gap-2 bg-white px-6 py-3 text-sm text-ink">
             Verify a submission
           </Link>
         </div>
+      </div>
+
+      <div id="create-hackproof" className="mt-14 scroll-mt-24">
+        <HackProofForm />
       </div>
 
       {/* How it works */}

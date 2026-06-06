@@ -16,9 +16,11 @@ function initChecks(): Check[] {
     { label: "Proof timestamp found", status: "pending" },
     { label: "Walrus manifest blob found", status: "pending" },
     { label: "Manifest hash matches on-chain record", status: "pending" },
-    { label: "Evidence file hashes listed in manifest", status: "pending" },
-    { label: "GitHub account linked to proof", status: "pending" },
+    { label: "Walrus evidence is present and file hashes verify", status: "pending" },
+    { label: "GitHub repo URL exists in metadata", status: "pending" },
+    { label: "Demo URL exists in metadata", status: "pending" },
     { label: "Wallet owner matches proof creator", status: "pending" },
+    { label: "Network is visible", status: "pending" },
     { label: "Verification performed through Tatum RPC", status: "pending" },
   ];
 }
@@ -138,33 +140,46 @@ export function VerifyForm() {
         else { patch(4, { status: "ok", detail: summary, subItems }); }
       }
 
-      // Check 5: GitHub identity anchored in manifest
+      // Check 5: GitHub repo URL anchored in manifest
       patch(5, { status: "running" });
-      const githubLogin = manifest?.builder?.githubLogin;
-      const githubUrl = manifest?.builder?.githubUrl || manifest?.builder?.links?.github || manifest?.links?.repo;
-      if (githubLogin) {
-        patch(5, { status: "ok", detail: `@${githubLogin} — anchored at submission time (${githubUrl || ""})` });
-      } else if (githubUrl) {
-        patch(5, { status: "ok", detail: `GitHub repo: ${githubUrl} (login not anchored — older proof)` });
+      const githubUrl = manifest?.links?.repo || manifest?.builder?.links?.github;
+      if (githubUrl) {
+        patch(5, { status: "ok", detail: `GitHub repo: ${githubUrl}` });
       } else {
-        patch(5, { status: "skip", detail: "No GitHub identity in manifest." });
-      }
-
-      // Check 6: Wallet owner matches manifest builder
-      patch(6, { status: "running" });
-      const onChainOwner = fields.owner as string | undefined;
-      const manifestWallet = manifest?.builder?.wallet;
-      if (!onChainOwner || !manifestWallet) {
-        patch(6, { status: "skip", detail: "Wallet data unavailable." });
-      } else if (onChainOwner.toLowerCase() === manifestWallet.toLowerCase()) {
-        patch(6, { status: "ok", detail: `${onChainOwner.slice(0, 10)}... matches manifest` });
-      } else {
-        patch(6, { status: "error", detail: "On-chain owner does not match manifest builder wallet." });
+        patch(5, { status: "error", detail: "No GitHub repo URL in manifest." });
         allOk = false;
       }
 
-      // Check 7: Tatum RPC
-      patch(7, { status: "ok", detail: "All reads performed via Tatum Sui JSON-RPC" });
+      // Check 6: Demo URL exists in manifest
+      patch(6, { status: "running" });
+      const demoUrl = manifest?.links?.demo;
+      if (demoUrl) {
+        patch(6, { status: "ok", detail: demoUrl });
+      } else {
+        patch(6, { status: "error", detail: "No demo URL in manifest." });
+        allOk = false;
+      }
+
+      // Check 7: Wallet owner matches manifest builder
+      patch(7, { status: "running" });
+      const onChainOwner = fields.owner as string | undefined;
+      const manifestWallet = manifest?.builder?.wallet;
+      if (!onChainOwner || !manifestWallet) {
+        patch(7, { status: "skip", detail: "Wallet data unavailable." });
+      } else if (onChainOwner.toLowerCase() === manifestWallet.toLowerCase()) {
+        patch(7, { status: "ok", detail: `${onChainOwner.slice(0, 10)}... matches manifest` });
+      } else {
+        patch(7, { status: "error", detail: "On-chain owner does not match manifest builder wallet." });
+        allOk = false;
+      }
+
+      // Check 8: Network visible
+      patch(8, { status: "running" });
+      const network = manifest?.network || "testnet";
+      patch(8, { status: "ok", detail: `${network} · timestamp ${tsMs ? new Date(Number(tsMs)).toLocaleString() : "unknown"}` });
+
+      // Check 9: Tatum RPC
+      patch(9, { status: "ok", detail: "All Sui reads performed via Tatum Sui JSON-RPC" });
 
       const title = (fields.title as string) || "Vouch Proof";
       const timestamp = tsMs ? new Date(Number(tsMs)).toLocaleString() : "Unknown";
