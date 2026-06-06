@@ -11,6 +11,8 @@ import { UpdateProofForm } from "@/components/UpdateProofForm";
 import { SuiAddress } from "@/components/SuiAddress";
 import { ProofScore } from "@/components/ProofScore";
 import { TatumStatusCard } from "@/components/TatumStatusCard";
+import { JudgeBriefCard } from "@/components/JudgeBriefCard";
+import { JudgeAssistantCard } from "@/components/JudgeAssistantCard";
 import { fetchWalrusBlob } from "@/lib/walrus/client";
 import { getObject } from "@/lib/tatum/rpc";
 import { sha256String } from "@/lib/hash/sha256";
@@ -247,6 +249,8 @@ export function ProofViewer({ objectId }: { objectId: string }) {
 
         <aside className="space-y-5">
           <TatumStatusCard objectId={objectId} />
+          <JudgeBriefCard objectId={objectId} network={network} />
+          <JudgeAssistantCard objectId={objectId} network={network} />
           <div className="card-neo flex items-center justify-center p-8" style={{ backgroundColor: "var(--color-surface)" }}>
             <CartoonMascot className="w-36 animate-float" />
           </div>

@@ -74,6 +74,7 @@ The resulting Sui object has an immutable blockchain timestamp. Anyone can indep
 - **Sui Seal encryption** - Toggle any evidence file to Private. Files are encrypted client-side using Sui Seal before going to Walrus. Only the owner wallet can decrypt them. Not even Vouch can read private files.
 - **On-chain anchoring via Tatum RPC** - Proof pages read Sui state through the Tatum Sui JSON-RPC gateway, proxied through a serverless API route that keeps the API key server-side. The hosted app uses a serverless proxy to call Tatum without exposing the API key. Anyone can independently verify using the Sui object ID, Walrus blob ID, and manifest hash.
 - **Independent verification tool** - Paste any proof URL at `/verify`. The tool re-fetches the Walrus blob, re-computes the SHA-256, and compares it to the on-chain hash step by step.
+- **AI Judge Brief + Assistant** - Proof pages can use Groq to summarize public proof metadata, highlight missing signals, and answer judge questions. AI is assistive only; cryptographic verification remains Walrus, Sui, and Tatum.
 - **SuiNS resolution** - Owner addresses resolve to `.sui` names where available.
 - **Update proof** - Add new evidence files to an existing proof. Each update increments the version number and re-anchors a new manifest on Sui.
 - **Public builder profiles** - Every GitHub user gets a profile page at `/u/[username]` listing all their verified proofs.
@@ -221,6 +222,8 @@ Server-only secrets:
 - `GITHUB_ID`
 - `GITHUB_SECRET`
 - `NEXTAUTH_SECRET`
+- `GROQ_API_KEY` (optional, server-only)
+- `GROQ_MODEL` (optional, defaults to `llama-3.1-8b-instant`)
 
 Public client configuration:
 
@@ -254,6 +257,14 @@ Public Walrus testnet endpoints are pre-configured in the deployed app.
 All on-chain reads go through the Tatum Sui gateway. The API key is sent as the `x-api-key` header. In the browser, requests are proxied through `/api/rpc` to avoid CORS issues with SDK-injected headers.
 
 Proof, certificate, and verify pages include a **Tatum Infra Status** card showing the active network, endpoint name, latest RPC check result, last successful object/event read, latency, and the phrase "Verified through Tatum Sui RPC". The UI never displays the full Tatum API key.
+
+## AI judge assistant
+
+Proof pages include an optional Groq-powered **AI Judge Brief** and **Judge Assistant**. These features summarize public proof metadata and verification checks so judges can review faster. They do not decide whether a project is valid, original, complete, or high quality. The source of truth remains the Walrus manifest, Sui proof object, and Tatum RPC verification checks.
+
+Set `GROQ_API_KEY` and optionally `GROQ_MODEL` in the deployment environment. If Groq is unavailable, Vouch falls back to a deterministic local summary.
+
+Vouch also exposes an MCP-style structured context endpoint at `/api/mcp/proof?objectId=0x...&network=testnet`. It returns the public proof context, Walrus evidence list, Sui/Tatum read details, manifest metadata, and pass/fail checks for agentic judge workflows.
 
 Docs: [docs.tatum.io/reference/rpc-sui](https://docs.tatum.io/reference/rpc-sui)
 
