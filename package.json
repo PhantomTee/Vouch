@@ -5,7 +5,7 @@
   "description": "Vouch is a verifiable proof-of-build registry for Sui projects.",
   "packageManager": "npm@10.9.2",
   "engines": {
-    "node": ">=20.0.0"
+    "node": "20.x"
   },
   "scripts": {
     "dev": "next dev",
@@ -29,7 +29,7 @@
     "zod": "^3.24.2"
   },
   "overrides": {
-    "@mysten/sui": "^1.38.0"
+    "@mysten/sui": "$@mysten/sui"
   },
   "devDependencies": {
     "@types/node": "^22.13.4",

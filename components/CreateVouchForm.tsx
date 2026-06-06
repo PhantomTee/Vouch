@@ -154,7 +154,9 @@ export function CreateVouchForm() {
 
       setStep(4);
       const tx = buildCreateProjectTx({ title: parsed.name, tagline: parsed.tagline, category: parsed.category, manifestBlobId: manifestUpload.blobId, manifestHash });
-      const result = await signAndExecuteTransaction({ transaction: tx });
+      const result = await signAndExecuteTransaction({
+        transaction: tx as Parameters<typeof signAndExecuteTransaction>[0]["transaction"]
+      });
       const objectId = getCreatedObjectId(result as SuiTransactionBlockResponse);
 
       const proof: StoredProof = {
