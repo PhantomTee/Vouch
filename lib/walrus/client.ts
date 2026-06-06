@@ -1,4 +1,4 @@
-import { getActiveNetworkConfig } from "@/lib/network";
+import { getActiveNetworkConfig, NETWORK_CONFIGS, type NetworkName } from "@/lib/network";
 
 export type WalrusUploadResult = { ok: true; blobId: string; raw: unknown } | { ok: false; message: string; setupHint: string };
 
@@ -12,10 +12,26 @@ const FALLBACK_AGGREGATORS = {
 function normalizeBase(url: string) { return url.replace(/\/$/, ""); }
 function extractBlobId(data: WalrusStoreResponse): string | undefined { return data.newlyCreated?.blobObject?.blobId || data.newlyCreated?.blobId || data.alreadyCertified?.blobId || data.blobId || data.blob_id; }
 
-function getWalrusBlobUrls(blobId: string): string[] {
-  const { name, walrusAggregatorUrl } = getActiveNetworkConfig();
-  if (!walrusAggregatorUrl || !blobId) return [];
-  const bases = [walrusAggregatorUrl, FALLBACK_AGGREGATORS[name]];
+function getWalrusBlobUrls(blobId: string, preferredNetwork?: NetworkName): string[] {
+  const active = getActiveNetworkConfig();
+  const networkOrder = Array.from(
+    new Set(
+      [
+        preferredNetwork,
+        active.name,
+        "testnet",
+        "mainnet",
+      ].filter(Boolean) as NetworkName[]
+    )
+  );
+
+  if (!blobId) return [];
+
+  const bases = networkOrder.flatMap((network) => [
+    NETWORK_CONFIGS[network].walrusAggregatorUrl,
+    FALLBACK_AGGREGATORS[network],
+  ]);
+
   return Array.from(new Set(bases.filter(Boolean).map(normalizeBase)))
     .map((base) => `${base}/v1/blobs/${encodeURIComponent(blobId)}`);
 }
@@ -43,27 +59,29 @@ export async function uploadToWalrus(body: Blob | string, contentType = "applica
   return { ok: true, blobId, raw: data };
 }
 
-export async function fetchWalrusBlob(blobId: string): Promise<{ ok: true; text: string } | { ok: false; message: string }> {
-  const { walrusAggregatorUrl } = getActiveNetworkConfig();
-  if (!walrusAggregatorUrl) return { ok: false, message: "Walrus aggregator URL is not configured. Set NEXT_PUBLIC_WALRUS_AGGREGATOR_URL to fetch manifests." };
+export async function fetchWalrusBlob(blobId: string, preferredNetwork?: NetworkName): Promise<{ ok: true; text: string; url: string } | { ok: false; message: string }> {
+  if (!blobId) return { ok: false, message: "Walrus blob ID is missing." };
   let lastMessage = "";
-  for (const url of getWalrusBlobUrls(blobId)) {
+  const urls = getWalrusBlobUrls(blobId, preferredNetwork);
+  if (urls.length === 0) return { ok: false, message: "Walrus aggregator URL is not configured." };
+  for (const url of urls) {
     const response = await fetch(url);
     const text = await response.text();
-    if (response.ok) return { ok: true, text };
+    if (response.ok) return { ok: true, text, url };
     lastMessage = `Walrus fetch failed with ${response.status}: ${text}`;
   }
-  return { ok: false, message: lastMessage || "Walrus fetch failed." };
+  return { ok: false, message: `${lastMessage || "Walrus fetch failed."} Tried ${urls.length} Walrus aggregator URL${urls.length === 1 ? "" : "s"} across testnet/mainnet.` };
 }
 
-export async function fetchWalrusBlobRaw(blobId: string): Promise<{ ok: true; data: ArrayBuffer } | { ok: false; message: string }> {
-  const { walrusAggregatorUrl } = getActiveNetworkConfig();
-  if (!walrusAggregatorUrl) return { ok: false, message: "Walrus aggregator URL is not configured." };
+export async function fetchWalrusBlobRaw(blobId: string, preferredNetwork?: NetworkName): Promise<{ ok: true; data: ArrayBuffer; url: string } | { ok: false; message: string }> {
+  if (!blobId) return { ok: false, message: "Walrus blob ID is missing." };
   let lastMessage = "";
-  for (const url of getWalrusBlobUrls(blobId)) {
+  const urls = getWalrusBlobUrls(blobId, preferredNetwork);
+  if (urls.length === 0) return { ok: false, message: "Walrus aggregator URL is not configured." };
+  for (const url of urls) {
     const response = await fetch(url);
-    if (response.ok) return { ok: true, data: await response.arrayBuffer() };
+    if (response.ok) return { ok: true, data: await response.arrayBuffer(), url };
     lastMessage = `Walrus fetch failed with ${response.status}`;
   }
-  return { ok: false, message: lastMessage || "Walrus fetch failed." };
+  return { ok: false, message: `${lastMessage || "Walrus fetch failed."} Tried ${urls.length} Walrus aggregator URL${urls.length === 1 ? "" : "s"} across testnet/mainnet.` };
 }

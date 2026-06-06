@@ -99,6 +99,7 @@ export function VerifyForm() {
       // Parse manifest
       let manifest: VouchManifest | null = null;
       try { manifest = JSON.parse(fetched.text) as VouchManifest; } catch { /* no manifest */ }
+      const network = manifest?.network === "mainnet" ? "mainnet" : "testnet";
 
       // Check 4: Fetch each public evidence blob and verify SHA-256
       patch(4, { status: "running" });
@@ -118,7 +119,7 @@ export function VerifyForm() {
             subItems.push({ name: ev.name, status: "skip", detail: "Private (Seal-encrypted) — owner-only decryption" });
             continue;
           }
-          const fetched = await fetchWalrusBlobRaw(ev.walrusBlobId);
+          const fetched = await fetchWalrusBlobRaw(ev.walrusBlobId, network);
           if (!fetched.ok) {
             subItems.push({ name: ev.name, status: "error", detail: `Fetch failed: ${fetched.message}` });
             anyFail = true;
@@ -175,7 +176,6 @@ export function VerifyForm() {
 
       // Check 8: Network visible
       patch(8, { status: "running" });
-      const network = manifest?.network || "testnet";
       patch(8, { status: "ok", detail: `${network} · timestamp ${tsMs ? new Date(Number(tsMs)).toLocaleString() : "unknown"}` });
 
       // Check 9: Tatum RPC
